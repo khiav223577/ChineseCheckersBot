@@ -25,12 +25,11 @@ class ChineseCheckersWindow < Gosu::Window
 #  render
 #-----------------------------------
   def update
-    @x = Input.trigger?(Gosu::MsLeft) ? 20 : 0
-    @board.update
+    @board.update(self)
     Input.update #must at the end of this method
   end
   def draw
-    @message.draw(10 + @x, 10, 0)
+    @message.draw(10, 10, 0)
     @board.draw(self)
   end
 end

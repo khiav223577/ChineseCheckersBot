@@ -1,4 +1,5 @@
 require './stone'
+require './player'
 class Board
   SQRT3_DIVIDE_2 = Math.sqrt(3) / 2.0
   DIVIDE_2 = 1 / 2.0
@@ -62,6 +63,13 @@ class Board
 #------------------------------------------
 #  cooridinate system
 #------------------------------------------
+  def board_xy_to_board_index(bx, by)
+    if (hash = @board_xy_to_board_index_mapping_hash) == nil
+      hash = @board_xy_to_board_index_mapping_hash = {}
+      ALL_BOARD_XY.each_with_index{|s, bidx| @board_xy_to_board_index_mapping_hash[s] = bidx }
+    end
+    return hash[[bx, by]]
+  end
   def board_xy_to_real_xy(bx, by)
     rx = (bx - by) * DIVIDE_2 * @draw_attrs[:cell_distance]
     ry = (bx + by) * SQRT3_DIVIDE_2 * @draw_attrs[:cell_distance]
@@ -70,47 +78,68 @@ class Board
   def real_xy_to_board_xy(rx, ry)
     x_minus_y = rx / (DIVIDE_2 * @draw_attrs[:cell_distance])
     x_plus_y = ry / (SQRT3_DIVIDE_2 * @draw_attrs[:cell_distance])
-    bx = Math.round((x_plus_y + x_minus_y) / 2.0)
-    by = Math.round((x_plus_y - x_minus_y) / 2.0)
+    bx = ((x_plus_y + x_minus_y) / 2.0).round
+    by = ((x_plus_y - x_minus_y) / 2.0).round
     return [bx, by]
+  end
+  def window_xy_to_real_xy(wx, wy)
+    rx = wx - @draw_attrs[:x] - @draw_attrs[:stone_size] / 2
+    ry = wy - @draw_attrs[:y] - @draw_attrs[:stone_size] / 2
+    return [rx, ry]
   end
 #------------------------------------------
 #  game control
 #------------------------------------------
-  def get_color_index(player_number, choose_color_idx) #get players' color
-    idx = case player_number
-          when 2 ; [0, 3]
-          when 3 ; [0, -2, 2]
-          when 4 ; [0, 1, 3, 4]
-          when 6 ; [0, 1, 2, 3, 4, 5, 6]
-          else   ; raise("illegal player_number: #{player_number}")
-          end
-    return idx.map{|s| (choose_color_idx + s) % 6 }
+  def get_players_color(player_number, choose_color_idx) #get players' color
+    idxs = case player_number
+           when 2 ; [0, 3]
+           when 3 ; [0, -2, 2]
+           when 4 ; [0, 1, 3, 4]
+           when 6 ; [0, 1, 2, 3, 4, 5, 6]
+           else   ; raise("illegal player_number: #{player_number}")
+           end
+    return idxs.map{|s| (choose_color_idx + s) % 6 }
   end
-  def get_players_start_aidx(player_number) #get players' start area
-    case player_number
-    when 2 ; return [5, 0]
-    when 3 ; return [5, 1, 2]
-    when 4 ; return [5, 4, 1, 0]
-    when 6 ; return [5, 4, 3, 2, 1, 0]
-    else   ; raise("illegal player_number: #{player_number}")
-    end
+  def get_players_start_area(player_number) #get players' start area
+    aidxs = case player_number
+            when 2 ; [5, 0]
+            when 3 ; [5, 1, 2]
+            when 4 ; [5, 4, 1, 0]
+            when 6 ; [5, 4, 3, 2, 1, 0]
+            else   ; raise("illegal player_number: #{player_number}")
+            end
+    return aidxs.map{|aidx| ALL_PLAYER_START_AREA[aidx] }
   end
   def start_game(player_number, choose_color_idx)
     @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(*board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
     @player_number = player_number
-    colors = get_color_index(player_number, choose_color_idx)
     ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = -1 }} #set all area to gray color
-    get_players_start_aidx(player_number).each_with_index{|aidx, idx|
+    colors = get_players_color(player_number, choose_color_idx)
+    areas = get_players_start_area(player_number)
+    @players = Array.new(player_number){|idx|
       color = colors[idx]
-      ALL_PLAYER_START_AREA[aidx].each{|bidx| @stones[bidx].color_idx = color }
+      areas[idx].each{|bidx| @stones[bidx].color_idx = color }
+      next Player.new(color)
     }
+    @player_number = player_number
+    @current_player_idx = 0
+  end
+#------------------------------------------
+#  ACCESS
+#------------------------------------------
+  def get_stone_by_window_xy(wx, wy)
+    bidx = board_xy_to_board_index(*real_xy_to_board_xy(*window_xy_to_real_xy(wx, wy)))
+    return (bidx ? @stones[bidx] : nil)
   end
 #------------------------------------------
 #  render
 #------------------------------------------
-  def update
+  def update(window)
     @stones.each{|s| s.update }
+    if (result = @players[@current_player_idx].update(window, self)) != nil
+      @current_player_idx += 1
+      @current_player_idx = 0 if @current_player_idx == @player_number
+    end
   end
   def draw(window)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
