@@ -91,6 +91,9 @@ class Board
 #------------------------------------------
 #  render
 #------------------------------------------
+  def update
+    @stones.each{|s| s.update }
+  end
   def draw(window)
     @stones.each{|s| s.draw(window, @x, @y) }
   end

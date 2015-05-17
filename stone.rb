@@ -19,6 +19,9 @@ class Stone
 #-----------------------------------
 #  render
 #-----------------------------------
+  def update
+    #TODO animation
+  end
   def draw(window, x, y)
     x += @x
     y += @y
