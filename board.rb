@@ -83,8 +83,8 @@ class Board
     return [bx, by]
   end
   def window_xy_to_real_xy(wx, wy)
-    rx = wx - @draw_attrs[:x] - @draw_attrs[:stone_size] / 2
-    ry = wy - @draw_attrs[:y] - @draw_attrs[:stone_size] / 2
+    rx = wx - @draw_attrs[:x]
+    ry = wy - @draw_attrs[:y]
     return [rx, ry]
   end
 #------------------------------------------
@@ -111,7 +111,7 @@ class Board
     return aidxs.map{|aidx| ALL_PLAYER_START_AREA[aidx] }
   end
   def start_game(player_number, choose_color_idx)
-    @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(*board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
+    @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
     @player_number = player_number
     ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = -1 }} #set all area to gray color
     colors = get_players_color(player_number, choose_color_idx)
@@ -128,15 +128,21 @@ class Board
 #  ACCESS
 #------------------------------------------
   def get_stone_by_window_xy(wx, wy)
-    bidx = board_xy_to_board_index(*real_xy_to_board_xy(*window_xy_to_real_xy(wx, wy)))
+    return get_stone_by_board_xy(*real_xy_to_board_xy(*window_xy_to_real_xy(wx, wy)))
+  end
+  def get_stone_by_board_xy(bx, by)
+    bidx = board_xy_to_board_index(bx, by)
     return (bidx ? @stones[bidx] : nil)
+  end
+  def get_current_player_color
+    return Stone::COLORS[@players[@current_player_idx].color_idx]
   end
 #------------------------------------------
 #  render
 #------------------------------------------
   def update(window)
     @stones.each{|s| s.update }
-    if (result = @players[@current_player_idx].update(window, self)) != nil
+    if @players[@current_player_idx].update(window, self) == true #next player's turn
       @current_player_idx += 1
       @current_player_idx = 0 if @current_player_idx == @player_number
     end
