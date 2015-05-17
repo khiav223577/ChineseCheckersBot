@@ -21,26 +21,34 @@ class Board
     [7,8],[8,7],
     [8,8],
   ]
+  ALL_PLAYER_START_BIDX = [
+    [0,1,2,3,4,5,6,7,8,9],
+    [10,11,12,13,23,24,25,35,36,46],
+    [19,20,21,22,32,33,34,44,45,55],
+    [65,75,76,86,87,88,98,99,100,101],
+    [74,84,85,95,96,97,107,108,109,110],
+    [111,112,113,114,115,116,117,118,119,120],
+  ]
 =begin
-              (0,0)
-                X
-               X X
-              X X X
- (-4,8)      X X X X        (8,-4)
-    X X X X X X X X X X X X X
-     X X X X X X X X X X X X
-      X X X X X X X X X X X
-       X X X X X X X X X X
-        X X X X X X X X X
-       X X X X X X X X X X
-      X X X X X X X X X X X
-     X X X X X X X X X X X X
-    X X X X X X X X X X X X X
- (0,12)      X X X X       (12,0)
-              X X X
-               X X
-                X
-              (8,8)
+               #0(0,0)
+                  X
+                 X X
+                X X X
+#10(-4,8)      X X X X    #22(8,-4)
+      X X X X X X X X X X X X X
+       X X X X X X X X X X X X
+        X X X X X X X X X X X
+         X X X X X X X X X X
+ #56(0,8) X X X X X X X X X #64(8,0)
+         X X X X X X X X X X
+        X X X X X X X X X X X
+       X X X X X X X X X X X X
+      X X X X X X X X X X X X X
+#98(0,12)      X X X X    #110(12,0)
+                X X X
+                 X X
+                  X
+              #120(8,8)
 
 =end
   def initialize(x, y, cell_distance, stone_size)
@@ -58,21 +66,18 @@ class Board
     return [rx, ry]
   end
   def real_xy_to_board_xy(rx, ry)
-    x_minux_y = rx / (DIVIDE_2 * @cell_distance)
+    x_minus_y = rx / (DIVIDE_2 * @cell_distance)
     x_plus_y = ry / (SQRT3_DIVIDE_2 * @cell_distance)
-    bx = Math.round((x_plus_y + x_minux_y) / 2.0)
-    by = Math.round((x_plus_y - x_minux_y) / 2.0)
+    bx = Math.round((x_plus_y + x_minus_y) / 2.0)
+    by = Math.round((x_plus_y - x_minus_y) / 2.0)
     return [bx, by]
   end
 #------------------------------------------
 #  game control
 #------------------------------------------
   def start_game(player_number)
-    @stones = []
-    ALL_BOARD_XY.each{|bx, by|
-      rx, ry = board_xy_to_real_xy(bx, by)
-      @stones << Stone.new(rand(6), rx, ry, @stone_size)
-    }
+    @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(*board_xy_to_real_xy(bx, by), @stone_size) }
+    ALL_PLAYER_START_BIDX.each_with_index{|array, p_idx| array.each{|idx| @stones[idx].player_idx = p_idx }}
     @player_number = player_number
     case player_number
     when 2
@@ -83,6 +88,9 @@ class Board
       raise("illegal player_number: #{player_number}")
     end
   end
+#------------------------------------------
+#  render
+#------------------------------------------
   def draw(window)
     @stones.each{|s| s.draw(window, @x, @y) }
   end
