@@ -21,7 +21,7 @@ class Board
     [7,8],[8,7],
     [8,8],
   ]
-  ALL_PLAYER_START_BIDX = [
+  ALL_PLAYER_START_AREA = [
     [0,1,2,3,4,5,6,7,8,9],
     [10,11,12,13,23,24,25,35,36,46],
     [19,20,21,22,32,33,34,44,45,55],
@@ -52,22 +52,24 @@ class Board
 
 =end
   def initialize(x, y, cell_distance, stone_size)
-    @x = x
-    @y = y
-    @cell_distance = cell_distance
-    @stone_size = stone_size
+    @draw_attrs = {
+      :x             => x,
+      :y             => y,
+      :cell_distance => cell_distance,
+      :stone_size    => stone_size,
+    }
   end
 #------------------------------------------
 #  cooridinate system
 #------------------------------------------
   def board_xy_to_real_xy(bx, by)
-    rx = (bx - by) * DIVIDE_2 * @cell_distance
-    ry = (bx + by) * SQRT3_DIVIDE_2 * @cell_distance
+    rx = (bx - by) * DIVIDE_2 * @draw_attrs[:cell_distance]
+    ry = (bx + by) * SQRT3_DIVIDE_2 * @draw_attrs[:cell_distance]
     return [rx, ry]
   end
   def real_xy_to_board_xy(rx, ry)
-    x_minus_y = rx / (DIVIDE_2 * @cell_distance)
-    x_plus_y = ry / (SQRT3_DIVIDE_2 * @cell_distance)
+    x_minus_y = rx / (DIVIDE_2 * @draw_attrs[:cell_distance])
+    x_plus_y = ry / (SQRT3_DIVIDE_2 * @draw_attrs[:cell_distance])
     bx = Math.round((x_plus_y + x_minus_y) / 2.0)
     by = Math.round((x_plus_y - x_minus_y) / 2.0)
     return [bx, by]
@@ -75,18 +77,34 @@ class Board
 #------------------------------------------
 #  game control
 #------------------------------------------
-  def start_game(player_number)
-    @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(*board_xy_to_real_xy(bx, by), @stone_size) }
-    ALL_PLAYER_START_BIDX.each_with_index{|array, p_idx| array.each{|idx| @stones[idx].player_idx = p_idx }}
-    @player_number = player_number
+  def get_color_index(player_number, choose_color_idx) #get players' color
+    idx = case player_number
+          when 2 ; [0, 3]
+          when 3 ; [0, -2, 2]
+          when 4 ; [0, 1, 3, 4]
+          when 6 ; [0, 1, 2, 3, 4, 5, 6]
+          else   ; raise("illegal player_number: #{player_number}")
+          end
+    return idx.map{|s| (choose_color_idx + s) % 6 }
+  end
+  def get_players_start_aidx(player_number) #get players' start area
     case player_number
-    when 2
-    when 3
-    when 4
-    when 6
-    else
-      raise("illegal player_number: #{player_number}")
+    when 2 ; return [5, 0]
+    when 3 ; return [5, 1, 2]
+    when 4 ; return [5, 4, 1, 0]
+    when 6 ; return [5, 4, 3, 2, 1, 0]
+    else   ; raise("illegal player_number: #{player_number}")
     end
+  end
+  def start_game(player_number, choose_color_idx)
+    @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(*board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
+    @player_number = player_number
+    colors = get_color_index(player_number, choose_color_idx)
+    ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = -1 }} #set all area to gray color
+    get_players_start_aidx(player_number).each_with_index{|aidx, idx|
+      color = colors[idx]
+      ALL_PLAYER_START_AREA[aidx].each{|bidx| @stones[bidx].color_idx = color }
+    }
   end
 #------------------------------------------
 #  render
@@ -95,6 +113,6 @@ class Board
     @stones.each{|s| s.update }
   end
   def draw(window)
-    @stones.each{|s| s.draw(window, @x, @y) }
+    @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
   end
 end
