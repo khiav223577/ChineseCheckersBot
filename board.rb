@@ -150,4 +150,8 @@ class Board
   def draw(window)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
   end
+
+  def get_board_state_for_ai
+    return @stones.map{|s| next ((s.color_idx == -1 || s.color_idx == nil) ? 0 : s.color_idx) }
+  end
 end
