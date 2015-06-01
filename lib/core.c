@@ -12,5 +12,8 @@ goal: 當前player目標要走到的區域
 output: 回傳要走的順序。
 */
 void basicAI(unsigned int playerID, unsigned int *players, unsigned int board[121], unsigned int *goal, unsigned int output[32]){
-
+  output[0] = 115;
+  output[1] = 104;
+  output[2] = 115;
+  output[3] = 115;
 }

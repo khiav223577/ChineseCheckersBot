@@ -23,8 +23,7 @@ class Player
 #---------------------------------------------
 #  Action
 #---------------------------------------------
-  def play_a_action(x, y)
-    stone = @board.get_stone_by_window_xy(x, y)
+  def play_a_action(stone)
     return :invalid if stone == nil
     if @prev_select_stone == nil       #select stone to move(has not selected a stone)
       return :cant_select_others_stone if stone.color_idx != @color_idx
@@ -65,17 +64,19 @@ class Player
 #---------------------------------------------
 #  Update (return :next_turn, :win, :fail, or nil)
 #---------------------------------------------
+  INVALID_BIDX = 0 #must be unsigned integer
+  MAXIMUM_STEP_SIZE = 32 #maximum step number
   def update(window)
     if @ai
       players = @board.players.map{|s| s.color_idx }.pack("I*")
       states = @board.get_board_state_for_ai.pack("I*")
-      result = Array.new(32, -1).pack("I*") #maximum step number is 32
-      goal = [].pack("I*")
-      actions = @ai.execute(@color_idx, players, states, goal, result) #TODO finish arguments
-      return :fail if mimic_actions(actions) == false
+      result = Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX).pack("I*")
+      @ai.call(@color_idx, players, states, @goal.pack("I*"), result)
+      result = result.unpack("I*")
+      return :fail if mimic_actions(result[0...result.index(INVALID_BIDX)]) == false
     else
       return if not Input.trigger?(Gosu::MsLeft)
-      return if play_a_action(window.mouse_x, window.mouse_y) != :finish
+      return if play_a_action(@board.get_stone_by_window_xy(window.mouse_x, window.mouse_y)) != :finish
     end
     return :win if check_whether_win_the_game?
     return :next_turn
@@ -83,13 +84,10 @@ class Player
 #---------------------------------------------
 #  (For AI) 用陣列模擬玩家操作。回傳是否是合法的操作
 #---------------------------------------------
-  def play_a_action_by_bidx(bidx)
-    play_a_action(*Border::ALL_BOARD_XY[bidx])
-  end
   def mimic_actions(actions)
     return false if actions.first == nil
     last_bidx = actions.pop
-    action.each{|bidx| return false if play_a_action_by_bidx(bidx) != :success }
-    return (play_a_action_by_bidx(last_bidx) == :finish)
+    actions.each{|bidx| return false if play_a_action(@board.get_stone_by_bidx(bidx)) != :success }
+    return (play_a_action(@board.get_stone_by_bidx(last_bidx)) == :finish)
   end
 end

@@ -125,7 +125,8 @@ class Board
     @players = Array.new(player_number){|idx|
       color = colors[idx]
       areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color }
-      next Player.new(self, color, areas[idx][:goal])
+      ai = (idx == 0 ? Core.method(:basicAI) : nil)
+      next Player.new(self, color, areas[idx][:goal], ai)
     }
     @player_number = player_number
     @current_player_idx = 0
@@ -136,11 +137,10 @@ class Board
   def get_stone_by_window_xy(wx, wy)
     return get_stone_by_board_xy(*real_xy_to_board_xy(*window_xy_to_real_xy(wx, wy)))
   end
-  def get_stone_by_bidx(bidx)
-    return get_stone_by_board_xy(*ALL_BOARD_XY[bidx])
-  end
   def get_stone_by_board_xy(bx, by)
-    bidx = board_xy_to_board_index(bx, by)
+    return get_stone_by_bidx(board_xy_to_board_index(bx, by))
+  end
+  def get_stone_by_bidx(bidx)
     return (bidx ? @stones[bidx] : nil)
   end
   def get_current_player_color
