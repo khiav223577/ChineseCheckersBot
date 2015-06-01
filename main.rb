@@ -38,7 +38,6 @@ class ChineseCheckersWindow < Gosu::Window
   def update
     self.caption = "#{Gosu.fps} FPS - Chinese Checkers Game"
     @board.update(self)
-    # p @board.get_board_state_for_ai
     Input.update #must at the end of this method
   end
   def draw

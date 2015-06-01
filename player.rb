@@ -1,7 +1,9 @@
 class Player
   attr_reader :color_idx
-  def initialize(color_idx, ai = nil)
+  def initialize(board, color_idx, goal, ai = nil)
+    @board = board
     @color_idx = color_idx
+    @goal = goal
     @ai = ai
     @move_count = 0
   end
@@ -22,7 +24,7 @@ class Player
 #  Action
 #---------------------------------------------
   def play_a_action(x, y)
-    stone = board.get_stone_by_window_xy(x, y)
+    stone = @board.get_stone_by_window_xy(x, y)
     return :invalid if stone == nil
     if @prev_select_stone == nil       #select stone to move(has not selected a stone)
       return :cant_select_others_stone if stone.color_idx != @color_idx
@@ -40,7 +42,7 @@ class Player
         deselect_stone
         return finish!
       when 2 #jump
-        middle_stone = board.get_stone_by_board_xy((stone.bx + @prev_select_stone.bx) / 2, (stone.by + @prev_select_stone.by) / 2)
+        middle_stone = @board.get_stone_by_board_xy((stone.bx + @prev_select_stone.bx) / 2, (stone.by + @prev_select_stone.by) / 2)
         return :cant_jump_without_other_stone if not middle_stone.occupied?
         stone.switch_color_with(@prev_select_stone)
         @move_count += 1
@@ -57,18 +59,26 @@ class Player
     @move_count = 0
     return :finish
   end
+  def check_whether_win_the_game?
+    return @goal.all?{|bidx| @board.get_stone_by_bidx(bidx).color_idx == @color_idx }
+  end
 #---------------------------------------------
-#  Update
+#  Update (return :next_turn, :win, :fail, or nil)
 #---------------------------------------------
-  def update(window, board) #return if a player had finished his turn
+  def update(window)
     if @ai
-      result = Array.new(32, -1) #maximum step number is 32
-      @ai.execute(@color_idx, result.pack("I*")) #TODO finish arguments
+      players = @board.players.map{|s| s.color_idx }.pack("I*")
+      states = @board.get_board_state_for_ai.pack("I*")
+      result = Array.new(32, -1).pack("I*") #maximum step number is 32
+      goal = [].pack("I*")
+      actions = @ai.execute(@color_idx, players, states, goal, result) #TODO finish arguments
+      return :fail if mimic_actions(actions) == false
     else
-      return false if not Input.trigger?(Gosu::MsLeft)
-      status = play_a_action(window.mouse_x, window.mouse_y)
-      return (status == :finish)
+      return if not Input.trigger?(Gosu::MsLeft)
+      return if play_a_action(window.mouse_x, window.mouse_y) != :finish
     end
+    return :win if check_whether_win_the_game?
+    return :next_turn
   end
 #---------------------------------------------
 #  (For AI) 用陣列模擬玩家操作。回傳是否是合法的操作
