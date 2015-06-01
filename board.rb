@@ -1,5 +1,5 @@
-require './stone'
-require './player'
+require File.expand_path('../stone', __FILE__)
+require File.expand_path('../player', __FILE__)
 class Board
   SQRT3_DIVIDE_2 = Math.sqrt(3) / 2.0
   DIVIDE_2 = 1 / 2.0

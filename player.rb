@@ -1,11 +1,12 @@
 class Player
   attr_reader :color_idx
-  def initialize(color_idx)
+  def initialize(color_idx, ai = nil)
     @color_idx = color_idx
+    @ai = ai
     @move_count = 0
   end
 #---------------------------------------------
-#  選擇棋子
+#  (Select/Deselect) a stone
 #---------------------------------------------
   def select_stone(stone)
     deselect_stone
@@ -52,25 +53,33 @@ class Player
     end
     return :success
   end
-#---------------------------------------------
-#  (For Real Player) 偵測按鍵。回傳是否該換人
-#---------------------------------------------
-  def update(window, board) #return if a player had finished his turn
-    #TODO use AI here if this player is a bot.
-    return false if not Input.trigger?(Gosu::MsLeft)
-    status = play_a_action(window.mouse_x, window.mouse_y)
-    return (status == :finish)
-  end
   def finish! #finish player's turn
     @move_count = 0
     return :finish
   end
 #---------------------------------------------
+#  Update
+#---------------------------------------------
+  def update(window, board) #return if a player had finished his turn
+    if @ai
+      result = Array.new(32, -1) #maximum step number is 32
+      @ai.execute(@color_idx, result.pack("I*")) #TODO finish arguments
+    else
+      return false if not Input.trigger?(Gosu::MsLeft)
+      status = play_a_action(window.mouse_x, window.mouse_y)
+      return (status == :finish)
+    end
+  end
+#---------------------------------------------
 #  (For AI) 用陣列模擬玩家操作。回傳是否是合法的操作
 #---------------------------------------------
+  def play_a_action_by_bidx(bidx)
+    play_a_action(*Border::ALL_BOARD_XY[bidx])
+  end
   def mimic_actions(actions)
     return false if actions.first == nil
-
-    return true
+    last_bidx = actions.pop
+    action.each{|bidx| return false if play_a_action_by_bidx(bidx) != :success }
+    return (play_a_action_by_bidx(last_bidx) == :finish)
   end
 end

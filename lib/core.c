@@ -1,8 +1,8 @@
 #include "math.h"
 #include <stdlib.h>
 #include "memory.h"
-int sum(int num1, int num2, int num3){ //test
-  return num1 + num2 + num3;
+int sum(int num1, int num2, int num3[2]){ //test
+  return num1 + num2 + num3[0] + num3[1];
 }
 /*
 playerIdx: 一個數字，代表當前是哪個player要動作
@@ -11,6 +11,6 @@ board: 一個陣列，代表整個盤面。0的話是空格，其它數字代表
 goal: 當前player目標要走到的區域
 output: 回傳要走的順序。
 */
-void basicAI(int playerID, int *players, int *board, int *goal, int *output){
+void basicAI(unsigned int playerID, unsigned int *players, unsigned int *board, unsigned int *goal, unsigned int output[32]){
 
 }
