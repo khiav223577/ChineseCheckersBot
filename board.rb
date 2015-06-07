@@ -1,6 +1,7 @@
 require File.expand_path('../stone', __FILE__)
 require File.expand_path('../player', __FILE__)
 class Board
+  BASE_ZIDX = 10
   attr_reader :players
   SQRT3_DIVIDE_2 = Math.sqrt(3) / 2.0
   DIVIDE_2 = 1 / 2.0
@@ -130,6 +131,7 @@ class Board
     }
     @player_number = player_number
     @current_player_idx = 0
+    @current_status = nil
   end
 #------------------------------------------
 #  ACCESS
@@ -151,22 +153,28 @@ class Board
 #------------------------------------------
   def update(window)
     @stones.each{|s| s.update }
+    return if @current_status != nil
     case @players[@current_player_idx].update(window)
     when :next_turn
       @current_player_idx += 1
       @current_player_idx = 0 if @current_player_idx == @player_number
     when :fail #AI fail
-      p 'fail'
-      STDIN.gets
-      exit #TODO
+      @current_status = :fail
     when :win
-      p 'win'
-      STDIN.gets
-      exit #TODO
+      @current_status = :win
     end
   end
   def draw(window)
+    @font ||= Gosu::Font.new(window, Gosu::default_font_name, 24)
+    @font.draw('Turn: ', 15, 48, BASE_ZIDX)
+    window.draw_square(85, 60, 10, get_current_player_color, BASE_ZIDX)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
+    case @current_status
+    when :win
+      @font.draw('win', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
+    when :fail
+      @font.draw('fail', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
+    end
   end
 
   def get_board_state_for_ai

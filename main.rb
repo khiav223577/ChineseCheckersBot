@@ -7,7 +7,7 @@ class ChineseCheckersWindow < Gosu::Window
     super(640, 480, false)
     @board = Board.new(320, 30, 30, 20)
     @board.start_game(3, 2)
-    @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 30)
+    @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 32)
   end
   def needs_cursor?
     return true
@@ -42,7 +42,6 @@ class ChineseCheckersWindow < Gosu::Window
   end
   def draw
     @message.draw(10, 10, 0)
-    self.draw_square(20, 60, 10, @board.get_current_player_color, 10)
     @board.draw(self)
   end
 end
