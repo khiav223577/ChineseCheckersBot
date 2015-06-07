@@ -1,5 +1,6 @@
 require File.expand_path('../stone', __FILE__)
 require File.expand_path('../player', __FILE__)
+require File.expand_path('../gosu/gosu_extension', __FILE__)
 class Board
   BASE_ZIDX = 10
   attr_reader :players
@@ -167,7 +168,7 @@ class Board
   def draw(window)
     @font ||= Gosu::Font.new(window, Gosu::default_font_name, 24)
     @font.draw('Turn: ', 15, 48, BASE_ZIDX)
-    window.draw_square(85, 60, 10, get_current_player_color, BASE_ZIDX)
+    window.draw_square(85, 60, 10, get_current_player_color.first, BASE_ZIDX)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
     case @current_status
     when :win
