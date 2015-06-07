@@ -33,6 +33,7 @@ class Player
       deselect_stone
       return finish! if @move_count > 0 #has jumpped
     elsif @prev_select_stone.color_idx == stone.color_idx #change selection(select another stone with same color)
+      return :illegal_movement if @move_count > 0
       select_stone(stone)
     elsif not stone.occupied?          #move stone(select an available place)
       case @prev_select_stone.distance_from(stone)
