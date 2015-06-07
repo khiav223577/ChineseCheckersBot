@@ -1,6 +1,7 @@
-require './stone'
-require './player'
+require File.expand_path('../stone', __FILE__)
+require File.expand_path('../player', __FILE__)
 class Board
+  attr_reader :players
   SQRT3_DIVIDE_2 = Math.sqrt(3) / 2.0
   DIVIDE_2 = 1 / 2.0
   ALL_BOARD_XY = [
@@ -100,7 +101,7 @@ class Board
            end
     return idxs.map{|s| (choose_color_idx + s) % 6 }
   end
-  def get_players_start_area(player_number) #get players' start area
+  def get_players_start_area(player_number) #get players' start area and goal
     aidxs = case player_number
             when 2 ; [5, 0]
             when 3 ; [5, 1, 2]
@@ -108,7 +109,12 @@ class Board
             when 6 ; [5, 4, 3, 2, 1, 0]
             else   ; raise("illegal player_number: #{player_number}")
             end
-    return aidxs.map{|aidx| ALL_PLAYER_START_AREA[aidx] }
+    return aidxs.map{|aidx|
+      next {
+        :start => ALL_PLAYER_START_AREA[aidx],
+        :goal  => ALL_PLAYER_START_AREA[5 - aidx],
+      }
+    }
   end
   def start_game(player_number, choose_color_idx)
     @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
@@ -118,8 +124,9 @@ class Board
     areas = get_players_start_area(player_number)
     @players = Array.new(player_number){|idx|
       color = colors[idx]
-      areas[idx].each{|bidx| @stones[bidx].color_idx = color }
-      next Player.new(color)
+      areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color }
+      ai = (idx == 0 ? Core.method(:basicAI) : nil)
+      next Player.new(self, color, areas[idx][:goal], ai)
     }
     @player_number = player_number
     @current_player_idx = 0
@@ -131,7 +138,9 @@ class Board
     return get_stone_by_board_xy(*real_xy_to_board_xy(*window_xy_to_real_xy(wx, wy)))
   end
   def get_stone_by_board_xy(bx, by)
-    bidx = board_xy_to_board_index(bx, by)
+    return get_stone_by_bidx(board_xy_to_board_index(bx, by))
+  end
+  def get_stone_by_bidx(bidx)
     return (bidx ? @stones[bidx] : nil)
   end
   def get_current_player_color
@@ -142,12 +151,25 @@ class Board
 #------------------------------------------
   def update(window)
     @stones.each{|s| s.update }
-    if @players[@current_player_idx].update(window, self) == true #next player's turn
+    case @players[@current_player_idx].update(window)
+    when :next_turn
       @current_player_idx += 1
       @current_player_idx = 0 if @current_player_idx == @player_number
+    when :fail #AI fail
+      p 'fail'
+      STDIN.gets
+      exit #TODO
+    when :win
+      p 'win'
+      STDIN.gets
+      exit #TODO
     end
   end
   def draw(window)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
+  end
+
+  def get_board_state_for_ai
+    return @stones.map{|s| next ((s.color_idx == -1 || s.color_idx == nil) ? 0 : s.color_idx) }
   end
 end
