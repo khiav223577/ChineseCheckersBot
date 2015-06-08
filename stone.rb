@@ -1,13 +1,13 @@
 class Stone
   Z_INDEX = 10
   COLORS = [
+    [Gosu::Color.new(255, 128, 128, 128), Gosu::Color.new(255, 128, 128, 128)], #gray
     [Gosu::Color.new(255, 255,   0,   0), Gosu::Color.new(255, 255, 128, 128)], #red
     [Gosu::Color.new(255, 216, 216,   0), Gosu::Color.new(255, 235, 235, 160)], #yellow
     [Gosu::Color.new(255,   0, 192,   0), Gosu::Color.new(255, 128, 223, 128)], #green
     [Gosu::Color.new(255,   0, 216, 216), Gosu::Color.new(255, 160, 235, 235)], #cyan
     [Gosu::Color.new(255,   0,   0, 255), Gosu::Color.new(255, 128, 128, 255)], #blue
     [Gosu::Color.new(255, 216,   0, 216), Gosu::Color.new(255, 235, 128, 235)], #fuchsia
-    [Gosu::Color.new(255, 128, 128, 128), Gosu::Color.new(255, 128, 128, 128)], #gray
   ]
   attr_writer :selected
   attr_reader :bx, :by
@@ -37,7 +37,7 @@ class Stone
   end
   def occupied? #Is this position occupies by a stone?
     return false if @color_idx == nil #white
-    return false if @color_idx == -1  #gray
+    return false if @color_idx == 0  #gray
     return true
   end
   def switch_color_with(other)

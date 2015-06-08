@@ -11,7 +11,7 @@ board: 一個陣列，代表整個盤面。0的話是空格，其它數字代表
 goal: 當前player目標要走到的區域
 output: 回傳要走的順序。
 */
-void basicAI(unsigned int playerID, unsigned int *players, unsigned int board[121], unsigned int *goal, unsigned int output[32]){
+void hello_world_ai(unsigned int playerID, unsigned int *players, unsigned int board[121], unsigned int *goal, unsigned int output[32]){
   output[0] = 115;
   output[1] = 104;
   output[2] = 115;

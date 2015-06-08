@@ -66,22 +66,20 @@ class Player
 #---------------------------------------------
 #  Update (return :next_turn, :win, :fail, or nil)
 #---------------------------------------------
-  INVALID_BIDX = 0 #must be unsigned integer
+  INVALID_BIDX = 999 #must be unsigned integer and larger than the largest 'color_idx'
   MAXIMUM_STEP_SIZE = 32 #maximum step number
   def update(window)
     if @ai
       if @ai_result_size == 0
-        players = @board.players.map{|s| s.color_idx }.pack("I*")
-        states = @board.get_board_state_for_ai.pack("I*")
-        result = Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX).pack("I*")
-        @ai.call(@color_idx, players, states, @goal.pack("I*"), result)
-        result = result.unpack("I*")
+        players = @board.players.map{|s| s.color_idx }
+        states = @board.get_board_state_for_ai
+        result = @ai.exec_ai(@color_idx, players, states, @goal, Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX))
         @ai_result = result[0...result.index(INVALID_BIDX)]
         @ai_result_size = @ai_result.size
         return :fail if @ai_result_size == 0
       end
       status = play_a_action(@board.get_stone_by_bidx(@ai_result.shift))
-      sleep 0.5 #slow down AI's action speed
+      #sleep 0.1 #slow down AI's action speed
       if (@ai_result_size -= 1) == 0
         return :fail if status != :finish
       else
