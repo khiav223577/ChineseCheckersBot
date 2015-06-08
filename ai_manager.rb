@@ -30,6 +30,7 @@ module_function
   end
 end
 class AI_Base
+  MAX_DEEP = 30
   INFINITY = 99999999
   def initialize(color_idx, players, board_states, goal, output)
     @your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}
@@ -53,21 +54,45 @@ class AI_Base
   end
   def search
     @current_min = INFINITY
+    @path_hash = {}
     @your_xys.each_index{|idx| inner_search(idx) }
+    @current_output.each_with_index{|s, idx| @output[idx] = s }
   end
-  def inner_search(idx)
+  def inner_search(idx, deep = 1, output = nil)
+    return if deep > MAX_DEEP
     xy = @your_xys[idx]
+    if deep == 1
+      output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]]
+      for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
+        xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
+        if get_color_at(xy_step1) == 0
+          @your_xys[idx] = xy_step1
+          output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
+          if (min = evaluation_function(@your_xys)) < @current_min
+            @current_min = min
+            @current_output = output.clone
+          end
+          @your_xys[idx] = xy
+        end
+      end
+    end
     for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
       xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
       xy_step2 = [xy_step1[0] + x_chg , xy_step1[1] + y_chg]
-      if get_color_at(xy_step1) == 0
-        @your_xys[idx] = xy_step1
+      bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]
+      next if @path_hash[bidx]
+      if get_color_at(xy_step1).to_i != 0 and get_color_at(xy_step2) == 0
+        @your_xys[idx] = xy_step2
+        @path_hash[bidx] = true
+        output[deep] = bidx
         if (min = evaluation_function(@your_xys)) < @current_min
           @current_min = min
-          @output[0] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]
-          @output[1] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
-          @output[2] = Player::INVALID_BIDX
+          @current_output = output.clone
+          @current_output << output.last
         end
+        inner_search(idx, deep + 1, output)
+        output[deep] = Player::INVALID_BIDX
+        @path_hash[bidx] = nil
         @your_xys[idx] = xy
       end
     end
