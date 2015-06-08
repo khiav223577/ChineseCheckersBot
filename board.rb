@@ -120,7 +120,6 @@ class Board
   end
   def start_game(player_number, choose_color_idx)
     @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
-    @player_number = player_number
     ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = -1 }} #set all area to gray color
     colors = get_players_color(player_number, choose_color_idx)
     areas = get_players_start_area(player_number)
@@ -130,9 +129,7 @@ class Board
       ai = (idx == 0 ? Core.method(:basicAI) : nil)
       next Player.new(self, color, areas[idx][:goal], ai)
     }
-    @player_number = player_number
-    @current_player_idx = 0
-    @current_status = nil
+    @game = Game.new(@players)
   end
 #------------------------------------------
 #  ACCESS
@@ -147,38 +144,63 @@ class Board
     return (bidx ? @stones[bidx] : nil)
   end
   def get_current_player_color
-    return Stone::COLORS[@players[@current_player_idx].color_idx]
+    return Stone::COLORS[@game.current_player.color_idx]
   end
 #------------------------------------------
 #  render
 #------------------------------------------
   def update(window)
     @stones.each{|s| s.update }
-    return if @current_status != nil
-    case @players[@current_player_idx].update(window)
-    when :next_turn
-      @current_player_idx += 1
-      @current_player_idx = 0 if @current_player_idx == @player_number
-    when :fail #AI fail
-      @current_status = :fail
-    when :win
-      @current_status = :win
-    end
+    @game.update(window)
   end
   def draw(window)
     @font ||= Gosu::Font.new(window, Gosu::default_font_name, 24)
     @font.draw('Turn: ', 15, 48, BASE_ZIDX)
     window.draw_square(85, 60, 10, get_current_player_color.first, BASE_ZIDX)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
-    case @current_status
-    when :win
-      @font.draw('win', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
-    when :fail
-      @font.draw('fail', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
-    end
+    @game.draw(window)
   end
 
   def get_board_state_for_ai
     return @stones.map{|s| next ((s.color_idx == -1 || s.color_idx == nil) ? 0 : s.color_idx) }
+  end
+#===================================
+#  Game
+#===================================
+  class Game
+    attr_reader :stones
+    def initialize(players)
+      @status = nil
+      @players = players
+      @player_number = players.size
+      @current_player_idx = 0
+    end
+    def current_player
+      return @players[@current_player_idx]
+    end
+#------------------------------------------
+#  render
+#------------------------------------------
+    def update(window)
+      return if @current_status != nil
+      case self.current_player.update(window)
+      when :next_turn
+        @current_player_idx += 1
+        @current_player_idx = 0 if @current_player_idx == @player_number
+      when :fail #AI fail
+        @current_status = :fail
+      when :win
+        @current_status = :win
+      end
+    end
+    def draw(window)
+      @font ||= Gosu::Font.new(window, Gosu::default_font_name, 24)
+      case @current_status
+      when :win
+        @font.draw('win', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
+      when :fail
+        @font.draw('fail', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
+      end
+    end
   end
 end
