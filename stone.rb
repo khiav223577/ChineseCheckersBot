@@ -1,6 +1,14 @@
 class Stone
   Z_INDEX = 10
-  COLORS = [Gosu::Color::RED, Gosu::Color::YELLOW, Gosu::Color::GREEN, Gosu::Color::CYAN, Gosu::Color::BLUE, Gosu::Color::FUCHSIA, Gosu::Color::GRAY]
+  COLORS = [
+    [Gosu::Color.new(255, 255,   0,   0), Gosu::Color.new(255, 255, 128, 128)], #red
+    [Gosu::Color.new(255, 216, 216,   0), Gosu::Color.new(255, 235, 235, 160)], #yellow
+    [Gosu::Color.new(255,   0, 192,   0), Gosu::Color.new(255, 128, 223, 128)], #green
+    [Gosu::Color.new(255,   0, 216, 216), Gosu::Color.new(255, 160, 235, 235)], #cyan
+    [Gosu::Color.new(255,   0,   0, 255), Gosu::Color.new(255, 128, 128, 255)], #blue
+    [Gosu::Color.new(255, 216,   0, 216), Gosu::Color.new(255, 235, 128, 235)], #fuchsia
+    [Gosu::Color.new(255, 128, 128, 128), Gosu::Color.new(255, 128, 128, 128)], #gray
+  ]
   attr_writer :selected
   attr_reader :bx, :by
   def initialize(bx, by, rx, ry, size)
@@ -14,7 +22,8 @@ class Stone
 #  ACCESS
 #-----------------------------------
   def color
-    return @cache_color ||= (@color_idx == nil ? Gosu::Color::WHITE : (COLORS[@color_idx] || raise("illegal color_idx: #{@color_idx}")))
+    return @cache_color ||= (COLORS[@color_idx] || raise("illegal color_idx: #{@color_idx}")) if @color_idx != nil
+    return @cache_color ||= ([Gosu::Color.new(255, 200, 200, 200), Gosu::Color.new(255, 200, 200, 200)])
   end
   attr_reader :color_idx
   def color_idx=(color_idx)
@@ -50,6 +59,7 @@ class Stone
   def draw(window, offx, offy)
     dx = offx + @rx
     dy = offy + @ry + (@selected ? -5 : 0)
-    window.draw_square(dx, dy, @size / 2, self.color, Z_INDEX)
+    window.draw_square(dx, dy, @size / 2, self.color[1], Z_INDEX)
+    window.draw_square(dx, dy, @size / 2 - 2, self.color.first, Z_INDEX)
   end
 end

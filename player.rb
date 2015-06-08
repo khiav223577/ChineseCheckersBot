@@ -52,7 +52,7 @@ class Player
         return :illegal_movement #TODO show message?
       end
     else
-      return :this_place_is_occupited
+      return :this_place_is_occupied
     end
     return :success
   end
