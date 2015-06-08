@@ -70,7 +70,7 @@ class AI_Base
           output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
           if (min = evaluation_function(@your_xys)) < @current_min
             @current_min = min
-            @current_output = output.clone
+            @current_output = output[0..deep]
           end
           @your_xys[idx] = xy
         end
@@ -87,8 +87,8 @@ class AI_Base
         output[deep] = bidx
         if (min = evaluation_function(@your_xys)) < @current_min
           @current_min = min
-          @current_output = output.clone
-          @current_output << output.last
+          @current_output = output[0..deep]
+          @current_output << @current_output.last
         end
         inner_search(idx, deep + 1, output)
         output[deep] = Player::INVALID_BIDX
