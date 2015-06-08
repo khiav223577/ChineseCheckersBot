@@ -4,7 +4,7 @@ module Core
   extend DL::Importer
   dlload File.expand_path('../core.dll', __FILE__)
   extern 'int sum(int, int, int*)'
-  extern 'void basicAI(unsigned int, unsigned int *, unsigned int *, unsigned int *, unsigned int *)'
+  extern 'void hello_world_ai(unsigned int, unsigned int *, unsigned int *, unsigned int *, unsigned int *)'
 end
 #Test
 a = Core.method(:sum)
