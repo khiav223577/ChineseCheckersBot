@@ -33,7 +33,7 @@ class AI_Base
   MAX_DEEP = 30
   INFINITY = 99999999
   def initialize(color_idx, players, board_states, goal, output)
-    @your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}
+    @your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}.shuffle
     @goal_xys = goal.map{|bidx| Board::ALL_BOARD_XY[bidx]}
     @board_states = board_states
     @output = output
@@ -63,7 +63,7 @@ class AI_Base
     xy = @your_xys[idx]
     if deep == 1
       output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]]
-      for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
+      for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]].shuffle
         xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
         if get_color_at(xy_step1) == 0
           @your_xys[idx] = xy_step1
