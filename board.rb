@@ -33,6 +33,8 @@ class Board
     [74,84,85,95,96,97,107,108,109,110],
     [111,112,113,114,115,116,117,118,119,120],
   ]
+  BOARD_XY_TO_BOARD_INDEX_HASH = {}
+  ALL_BOARD_XY.each_with_index{|s, bidx| BOARD_XY_TO_BOARD_INDEX_HASH[s] = bidx }
 =begin
                #0(0,0)
                   X
@@ -67,11 +69,7 @@ class Board
 #  cooridinate system
 #------------------------------------------
   def board_xy_to_board_index(bx, by)
-    if (hash = @board_xy_to_board_index_mapping_hash) == nil
-      hash = @board_xy_to_board_index_mapping_hash = {}
-      ALL_BOARD_XY.each_with_index{|s, bidx| @board_xy_to_board_index_mapping_hash[s] = bidx }
-    end
-    return hash[[bx, by]]
+    return BOARD_XY_TO_BOARD_INDEX_HASH[[bx, by]]
   end
   def board_xy_to_real_xy(bx, by)
     rx = (bx - by) * DIVIDE_2 * @draw_attrs[:cell_distance]
@@ -101,7 +99,7 @@ class Board
            when 6 ; [0, 1, 2, 3, 4, 5, 6]
            else   ; raise("illegal player_number: #{player_number}")
            end
-    return idxs.map{|s| (choose_color_idx + s) % 6 }
+    return idxs.map{|s| (choose_color_idx + s) % 6 + 1}
   end
   def get_players_start_area(player_number) #get players' start area and goal
     aidxs = case player_number
@@ -120,13 +118,13 @@ class Board
   end
   def start_game(player_number, choose_color_idx)
     @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
-    ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = -1 }} #set all area to gray color
+    ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = 0 }} #set all area to gray color
     colors = get_players_color(player_number, choose_color_idx)
     areas = get_players_start_area(player_number)
     @players = Array.new(player_number){|idx|
       color = colors[idx]
       areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color }
-      ai = (idx == 0 ? AI_Manager.hello_world_ai : nil)
+      ai = (idx == 0 ? AI_Manager.greedy_ai : nil)
       next Player.new(self, color, areas[idx][:goal], ai)
     }
     @game = Game.new(@players)
@@ -162,7 +160,7 @@ class Board
   end
 
   def get_board_state_for_ai
-    return @stones.map{|s| next ((s.color_idx == -1 || s.color_idx == nil) ? 0 : s.color_idx) }
+    return @stones.map{|s| next (s.color_idx == nil ? 0 : s.color_idx) }
   end
 #===================================
 #  Game
