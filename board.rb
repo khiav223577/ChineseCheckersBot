@@ -168,6 +168,7 @@ class Board
   class Game
     attr_reader :stones
     def initialize(players)
+      @round = 1
       @status = nil
       @players = players
       @player_number = players.size
@@ -184,7 +185,10 @@ class Board
       case self.current_player.update(window)
       when :next_turn
         @current_player_idx += 1
-        @current_player_idx = 0 if @current_player_idx == @player_number
+        if @current_player_idx == @player_number
+          @current_player_idx = 0
+          @round += 1
+        end
       when :fail #AI fail
         @current_status = :fail
       when :win
@@ -193,11 +197,12 @@ class Board
     end
     def draw(window)
       @font ||= Gosu::Font.new(window, Gosu::default_font_name, 24)
+      @font.draw("Round: #{@round}", 15, 75, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
       case @current_status
       when :win
-        @font.draw('win', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
+        @font.draw('win', 40, 100, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
       when :fail
-        @font.draw('fail', 40, 70, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
+        @font.draw('fail', 40, 100, BASE_ZIDX, 1.0, 1.0, 0xffffff00)
       end
     end
   end
