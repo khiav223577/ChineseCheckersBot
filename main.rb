@@ -1,7 +1,7 @@
 require 'gosu'
 require File.expand_path('../input', __FILE__)
 require File.expand_path('../board', __FILE__)
-require File.expand_path('../lib/core', __FILE__)
+require File.expand_path('../ai_manager', __FILE__)
 class ChineseCheckersWindow < Gosu::Window
   def initialize
     super(640, 480, false)
