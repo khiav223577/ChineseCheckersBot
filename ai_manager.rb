@@ -26,38 +26,50 @@ module_function
     return AI_Object.new(:pack_pointer, Core.method(:hello_world_ai))
   end
   def greedy_ai
-    get_distance_of = lambda{|x, y, tx, ty|
-      dx = tx - x
-      dy = ty - y
-      next [dx.abs, dy.abs, (dx + dy).abs].max
+    return AI_Object.new(nil, lambda{|*args| AI_Base.new(*args).search })
+  end
+end
+class AI_Base
+  INFINITY = 99999999
+  def initialize(color_idx, players, board_states, goal, output)
+    @your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}
+    @goal_xys = goal.map{|bidx| Board::ALL_BOARD_XY[bidx]}
+    @board_states = board_states
+    @output = output
+  end
+  def get_color_at(xy)
+    return nil if (bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]) == nil
+    return @board_states[bidx]
+  end
+  def get_distance_of(xy, txy)
+    dx = txy[0] - xy[0]
+    dy = txy[1] - xy[1]
+    return [dx.abs, dy.abs, (dx + dy).abs].max
+  end
+  def evaluation_function(current_xys)
+    return current_xys.inject(0){|sum, xy|
+      next sum + @goal_xys.map{|gxy| get_distance_of(xy, gxy) }.min
     }
-    evaluate = lambda{|your_xys, goal_xys|
-      next your_xys.inject(0){|sum, xy|
-        next sum + goal_xys.map{|gxy| get_distance_of.call(*xy, *gxy) }.min
-      }
-    }
-    return AI_Object.new(nil, lambda{|color_idx, players, board_states, goal, output|
-      is_available = lambda{|xy|
-        next false if (bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]) == nil
-        next (board_states[bidx] == 0)
-      }
-      goal_xys = goal.map{|bidx| Board::ALL_BOARD_XY[bidx]}
-      your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}
-      current_min = 99999999
-      your_xys.each_with_index{|xy, idx|
-        for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
-          new_xy = [xy[0] + x_chg, xy[1] + y_chg]
-          if is_available.call(new_xy)
-            your_xys[idx] = new_xy
-            if (min = evaluate.call(your_xys, goal_xys)) < current_min
-              current_min = min
-              output[0] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]
-              output[1] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[new_xy]
-            end
-            your_xys[idx] = xy
-          end
+  end
+  def search
+    @current_min = INFINITY
+    @your_xys.each_index{|idx| inner_search(idx) }
+  end
+  def inner_search(idx)
+    xy = @your_xys[idx]
+    for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
+      xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
+      xy_step2 = [xy_step1[0] + x_chg , xy_step1[1] + y_chg]
+      if get_color_at(xy_step1) == 0
+        @your_xys[idx] = xy_step1
+        if (min = evaluation_function(@your_xys)) < @current_min
+          @current_min = min
+          @output[0] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]
+          @output[1] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
+          @output[2] = Player::INVALID_BIDX
         end
-      }
-    })
+        @your_xys[idx] = xy
+      end
+    end
   end
 end
