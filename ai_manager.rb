@@ -76,7 +76,7 @@ class AI_Base
         end
       end
     end
-    for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
+    for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]].shuffle
       xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
       xy_step2 = [xy_step1[0] + x_chg , xy_step1[1] + y_chg]
       bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]
