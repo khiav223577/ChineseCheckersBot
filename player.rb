@@ -1,5 +1,6 @@
 class Player
   attr_reader :color_idx
+  attr_reader :goal
   def initialize(board, color_idx, goal, ai = nil)
     @board = board
     @color_idx = color_idx
@@ -73,9 +74,10 @@ class Player
       sleep 0.1 #slow down AI's action speed
       if @ai_result_size == 0
         players = @board.players.map{|s| s.color_idx }
-        states = @board.get_board_state_for_ai
-        result = @ai.exec_ai(@color_idx, players, states, @goal, Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX))
-        ridx = result.index(INVALID_BIDX) #delete invalid bidx
+        goals   = @board.players.map{|s| s.goal }
+        states  = @board.get_board_state_for_ai
+        result  = @ai.exec_ai(@color_idx, players, states, goals, Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX))
+        ridx    = result.index(INVALID_BIDX) #delete invalid bidx
         @ai_result = (ridx ? result[0...ridx] : result).reverse
         @ai_result_size = @ai_result.size
         return :fail if @ai_result_size == 0

@@ -6,9 +6,10 @@ module AI_Manager
       @pre_process_type = pre_process_type
       @ai_method = ai_method
     end
-    def exec_ai(color_idx, *args) #args = [players, board_states, goal, output]
+    def exec_ai(color_idx, *args) #args = [players, board_states, goals, output]
       case @pre_process_type
       when :pack_pointer
+        args[2] = args[2].flatten
         @ai_method.call(color_idx, *args.map!{|s| s.pack('I*')})
         return args.last.unpack("I*")
       when :to_json
@@ -24,7 +25,7 @@ module_function
     return AI_Object.new(:pack_pointer, Core.method(:hello_world_ai))
   end
   def py_hello_world_ai #test python
-    AI_Object.new(:to_json, lambda{|*args| %x(python lib/helloworld.py #{args.join(' ')}) })
+    AI_Object.new(:to_json, lambda{|*args| %x(python #{File.expand_path('../lib/helloworld.py', __FILE__)} #{args.join(' ')}) })
   end
   def greedy_ai
     return AI_Object.new(nil, lambda{|*args| AI_Base.new(*args).search })
@@ -33,9 +34,9 @@ end
 class AI_Base
   MAX_DEEP = 30
   INFINITY = 99999999
-  def initialize(color_idx, players, board_states, goal, output)
+  def initialize(color_idx, players, board_states, goals, output)
     @your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}.shuffle
-    @goal_xys = goal.map{|bidx| Board::ALL_BOARD_XY[bidx]}
+    @goal_xys = goals[players.index(color_idx)].map{|bidx| Board::ALL_BOARD_XY[bidx]}
     @board_states = board_states
     @output = output
   end
@@ -91,4 +92,7 @@ class AI_Base
       end
     end
   end
+end
+class AlphaBetaAI < AI_Base
+
 end
