@@ -1,3 +1,4 @@
+require 'json'
 require File.expand_path('../lib/core', __FILE__)
 module AI_Manager
   class AI_Object
@@ -5,25 +6,28 @@ module AI_Manager
       @pre_process_type = pre_process_type
       @ai_method = ai_method
     end
-    def exec_ai(color_idx, players, board_states, goal, output)
+    def exec_ai(color_idx, *args) #args = [players, board_states, goal, output]
       case @pre_process_type
       when :pack_pointer
-        players      = players.pack("I*")
-        board_states = board_states.pack("I*")
-        output       = output.pack("I*")
-        goal         = goal.pack("I*")
+        @ai_method.call(color_idx, *args.map!{|s| s.pack('I*')})
+        return args.last.unpack("I*")
+      when :to_s
+       p 1
+        a = @ai_method.call(color_idx, *args.map!{|s| s.to_s.delete(' ')})
+        puts a
+        exit
+      else
+        @ai_method.call(color_idx, *args)
+        return args.last
       end
-      @ai_method.call(color_idx, players, board_states, goal, output)
-      case @pre_process_type
-      when :pack_pointer
-        output = output.unpack("I*")
-      end
-      return output
     end
   end
 module_function
-  def hello_world_ai
+  def c_hello_world_ai #test C
     return AI_Object.new(:pack_pointer, Core.method(:hello_world_ai))
+  end
+  def py_hello_world_ai #test python
+    AI_Object.new(:to_s, lambda{|*args| %x(python lib/helloworld.py #{args.join(' ')}) })
   end
   def greedy_ai
     return AI_Object.new(nil, lambda{|*args| AI_Base.new(*args).search })
@@ -38,18 +42,18 @@ class AI_Base
     @board_states = board_states
     @output = output
   end
-  def get_color_at(xy)
+  def get_color_at(xy) #界外的話回傳nil，空格的話回傳0，否則回傳playerID
     return nil if (bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]) == nil
     return @board_states[bidx]
   end
-  def get_distance_of(xy, txy)
+  def get_distance_between(xy, txy)
     dx = txy[0] - xy[0]
     dy = txy[1] - xy[1]
     return [dx.abs, dy.abs, (dx + dy).abs].max
   end
   def evaluation_function(current_xys)
     return current_xys.inject(0){|sum, xy|
-      next sum + @goal_xys.map{|gxy| get_distance_of(xy, gxy) }.min
+      next sum + @goal_xys.map{|gxy| get_distance_between(xy, gxy) }.min
     }
   end
   def search
