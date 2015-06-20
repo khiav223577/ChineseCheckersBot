@@ -59,19 +59,19 @@ class AI_Base
     @your_xys.each_index{|idx| inner_search(idx) }
     @current_output.each_with_index{|s, idx| @output[idx] = s }
   end
-  def inner_search(idx, deep = 1, output = nil)
+  def inner_search(idx, deep = 1)
     return if deep > MAX_DEEP
     xy = @your_xys[idx]
     if deep == 1
-      output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]]
+      @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]]
       for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]].shuffle
         xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
         if get_color_at(xy_step1) == 0
           @your_xys[idx] = xy_step1
-          output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
+          @inner_output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
           if (min = evaluation_function(@your_xys)) < @current_min
             @current_min = min
-            @current_output = output[0..deep]
+            @current_output = @inner_output[0..deep]
           end
           @your_xys[idx] = xy
         end
@@ -85,13 +85,13 @@ class AI_Base
       if get_color_at(xy_step1).to_i != 0 and get_color_at(xy_step2) == 0
         @your_xys[idx] = xy_step2
         @path_hash[bidx] = true
-        output[deep] = bidx
+        @inner_output[deep] = bidx
         if (min = evaluation_function(@your_xys)) < @current_min
           @current_min = min
-          @current_output = output[0..deep]
+          @current_output = @inner_output[0..deep]
         end
-        inner_search(idx, deep + 1, output)
-        output[deep] = Player::INVALID_BIDX
+        inner_search(idx, deep + 1)
+        @inner_output[deep] = Player::INVALID_BIDX
         @path_hash[bidx] = nil
         @your_xys[idx] = xy
       end
