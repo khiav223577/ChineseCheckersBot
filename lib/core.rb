@@ -8,4 +8,4 @@ module Core
 end
 #Test
 a = Core.method(:sum)
-p a.call(1,5,[100,512].pack("i*"))
+#p a.call(1,5,[100,512].pack("i*"))
