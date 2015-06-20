@@ -89,7 +89,6 @@ class AI_Base
         if (min = evaluation_function(@your_xys)) < @current_min
           @current_min = min
           @current_output = output[0..deep]
-          @current_output << @current_output.last
         end
         inner_search(idx, deep + 1, output)
         output[deep] = Player::INVALID_BIDX
