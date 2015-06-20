@@ -71,7 +71,7 @@ class Player
   MAXIMUM_STEP_SIZE = 32 #maximum step number
   def update(window)
     if @ai
-      sleep 0.1 #slow down AI's action speed
+      sleep CONFIG[:ai_sleep_time] #slow down AI's action speed
       if @ai_result_size == 0
         players = @board.players.map{|s| s.color_idx }
         goals   = @board.players.map{|s| s.goal }
