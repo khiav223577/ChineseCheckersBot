@@ -62,38 +62,32 @@ class AI_Base
   def inner_search(idx, deep = 1)
     return if deep > MAX_DEEP
     xy = @your_xys[idx]
-    if deep == 1
-      @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]]
-      for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]].shuffle
-        xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
-        if get_color_at(xy_step1) == 0
-          @your_xys[idx] = xy_step1
-          @inner_output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
-          if (min = evaluation_function(@your_xys)) < @current_min
-            @current_min = min
-            @current_output = @inner_output[0..deep]
-          end
-          @your_xys[idx] = xy
-        end
-      end
-    end
+    @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]] if (can_walk_a_stone = (deep == 1))
+    check_min = lambda{
+      next if (min = evaluation_function(@your_xys)) >= @current_min
+      @current_min = min
+      @current_output = @inner_output[0..deep]
+    }
     for (x_chg, y_chg) in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]].shuffle
       xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
       xy_step2 = [xy_step1[0] + x_chg , xy_step1[1] + y_chg]
-      bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]
-      next if @path_hash[bidx]
-      if get_color_at(xy_step1).to_i != 0 and get_color_at(xy_step2) == 0
-        @your_xys[idx] = xy_step2
+      color1 = get_color_at(xy_step1)
+      color2 = get_color_at(xy_step2)
+      if can_walk_a_stone and color1 == 0
+        @your_xys[idx] = xy_step1
+        @inner_output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
+        check_min.call
+        @your_xys[idx] = xy
+      end
+      if color2 == 0 and color1 != nil and color1 != 0 and not @path_hash[bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]]
         @path_hash[bidx] = true
+        @your_xys[idx] = xy_step2
         @inner_output[deep] = bidx
-        if (min = evaluation_function(@your_xys)) < @current_min
-          @current_min = min
-          @current_output = @inner_output[0..deep]
-        end
+        check_min.call
         inner_search(idx, deep + 1)
         @inner_output[deep] = Player::INVALID_BIDX
-        @path_hash[bidx] = nil
         @your_xys[idx] = xy
+        @path_hash[bidx] = nil
       end
     end
   end
