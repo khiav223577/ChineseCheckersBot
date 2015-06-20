@@ -11,11 +11,8 @@ module AI_Manager
       when :pack_pointer
         @ai_method.call(color_idx, *args.map!{|s| s.pack('I*')})
         return args.last.unpack("I*")
-      when :to_s
-       p 1
-        a = @ai_method.call(color_idx, *args.map!{|s| s.to_s.delete(' ')})
-        puts a
-        exit
+      when :to_json
+        return JSON.parse(@ai_method.call(color_idx, *args.map!{|s| s.to_json}))
       else
         @ai_method.call(color_idx, *args)
         return args.last
@@ -27,7 +24,7 @@ module_function
     return AI_Object.new(:pack_pointer, Core.method(:hello_world_ai))
   end
   def py_hello_world_ai #test python
-    AI_Object.new(:to_s, lambda{|*args| %x(python lib/helloworld.py #{args.join(' ')}) })
+    AI_Object.new(:to_json, lambda{|*args| %x(python lib/helloworld.py #{args.join(' ')}) })
   end
   def greedy_ai
     return AI_Object.new(nil, lambda{|*args| AI_Base.new(*args).search })

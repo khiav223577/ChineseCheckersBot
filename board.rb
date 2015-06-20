@@ -124,7 +124,7 @@ class Board
     @players = Array.new(player_number){|idx|
       color = colors[idx]
       areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color }
-      ai = (idx != 123120 ? AI_Manager.py_hello_world_ai : nil)
+      ai = (idx != 123120 ? AI_Manager.greedy_ai : nil)
       next Player.new(self, color, areas[idx][:goal], ai)
     }
     @game = Game.new(@players)
