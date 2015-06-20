@@ -11,12 +11,13 @@ class Stone
   ]
   attr_writer :selected
   attr_reader :bx, :by
-  def initialize(bx, by, rx, ry, size)
+  def initialize(bx, by, rx, ry, size, color_idx)
     @bx = bx
     @by = by
     @rx = rx
     @ry = ry
     @size = size
+    @origin_color_idx = @color_idx = color_idx
   end
 #-----------------------------------
 #  ACCESS
@@ -40,8 +41,12 @@ class Stone
     return false if @color_idx == 0  #gray
     return true
   end
+  def release!
+    self.color_idx = @origin_color_idx
+  end
   def switch_color_with(other)
-    other.color_idx, self.color_idx = self.color_idx, other.color_idx
+    self.color_idx = other.color_idx
+    other.release!
   end
   def distance_from(other) #get the move distance from this stone to another stone
   #TODO

@@ -117,8 +117,8 @@ class Board
     }
   end
   def start_game(player_number, choose_color_idx)
-    @stones = ALL_BOARD_XY.map{|bx, by| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size]) }
-    ALL_PLAYER_START_AREA.each{|array| array.each{|bidx| @stones[bidx].color_idx = 0 }} #set all area to gray color
+    mapping = Hash[*ALL_PLAYER_START_AREA.flatten.each_with_index.to_a.flatten] #set all start area to gray color
+    @stones = ALL_BOARD_XY.map.with_index{|(bx, by), bidx| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size], (mapping[bidx] ? 0 : nil)) }
     colors = get_players_color(player_number, choose_color_idx)
     areas = get_players_start_area(player_number)
     @players = Array.new(player_number){|idx|
