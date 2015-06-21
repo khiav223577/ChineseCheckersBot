@@ -9,7 +9,7 @@ private
   def min_max(depth)
     return heuristic_function(@players_xys[0], @goals_xys[0]) if depth > MAX_DEEP
     player_idx = get_player_idx_by_depth(depth)
-    rule_obj = get_rule_obj_by(depth)
+    rule_obj = RuleExec.new(self, @players_xys[get_player_idx_by_depth(depth)])
     player_xy = @players_xys[player_idx]
     goal_xy = @goals_xys[player_idx]
     if player_idx == 0
