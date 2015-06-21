@@ -9,6 +9,7 @@ module AI_Manager
       @ai_method = ai_method
     end
     def exec_ai(color_idx, *args) #args = [players, board_states, goals, output]
+      t = Time.now
       case @pre_process_type
       when :pack_pointer
         args[2] = args[2].flatten
@@ -20,6 +21,8 @@ module AI_Manager
         @ai_method.call(color_idx, *args)
         return args.last
       end
+    ensure
+      puts "%6.1fms" % ((Time.now - t) * 1000)
     end
   end
 module_function

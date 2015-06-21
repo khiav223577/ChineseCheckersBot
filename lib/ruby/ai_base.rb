@@ -22,6 +22,11 @@ module AI
     end
     def heuristic_function(current_xys, goal_xys)
       return current_xys.inject(0){|sum, xy|
+        distance = get_distance_between(xy, goal_xys.first)
+        distance /= 2 if distance <= 3 #already reach goal
+        next sum + distance
+      }
+      return current_xys.inject(0){|sum, xy|
         next sum + goal_xys.map{|gxy| get_distance_between(xy, gxy) }.min
       }
     end
