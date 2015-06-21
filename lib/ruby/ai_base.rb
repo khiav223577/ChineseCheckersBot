@@ -42,6 +42,7 @@ module AI
       def for_each_legal_move(&block)
         @callback = block
         @deep = 0
+        @cut_flag = false
         for @your_xys_idx in @your_xys.size.times
           inner_for_each_legal_move
           break if @cut_flag
