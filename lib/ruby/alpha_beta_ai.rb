@@ -1,6 +1,6 @@
 require File.expand_path('../ai_base', __FILE__)
 class AI::AlphaBeta < AI::Base
-  MAX_DEEP = 3
+  MAX_DEEP = 4
   def initialize(color_idx, players, board_states, goals, output)
     pidx = players.index(color_idx)
     [goals, players].each{|s| s.push(*s.shift(pidx)) } #rearrange the order of players
@@ -10,7 +10,6 @@ class AI::AlphaBeta < AI::Base
     }
     @goals_xys = goals.map{|goal| goal.map{|bidx| Board::ALL_BOARD_XY[bidx]} }
     @board_states = board_states
-    @rule_objs = @players_xys.map{|xy| RuleExec.new(self, xy) }
     @output = output
   end
   def search
@@ -25,7 +24,7 @@ private
   def alpha_beta(player_idx, depth, alpha, beta)
     return evaluation_function if depth > MAX_DEEP
     player_idx = 0 if player_idx >= @player_size
-    rule_obj = @rule_objs[player_idx]
+    rule_obj = RuleExec.new(self, @players_xys[player_idx])
     original_cost = @players_heuristic_cost[player_idx]
     max_node = (player_idx == 0) #find max
     current_value = (max_node ? -INFINITY : INFINITY)
