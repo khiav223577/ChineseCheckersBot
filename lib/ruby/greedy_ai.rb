@@ -5,13 +5,13 @@ class AI::Greedy < AI::Base
     @your_xys = board_states.each_index.select{|bidx| board_states[bidx] == color_idx}.map{|bidx| Board::ALL_BOARD_XY[bidx]}.shuffle
     @goal_xys = goals[players.index(color_idx)].map{|bidx| Board::ALL_BOARD_XY[bidx]}
     @board_states = board_states
-    @output = output
     @rule_obj = RuleExec.new(self, @your_xys)
+    @output = output
   end
   def search
     @current_min = INFINITY
     @rule_obj.for_each_legal_move{|xys|
-      next if (min = evaluation_function(xys, @goal_xys)) >= @current_min
+      next if (min = heuristic_function(xys, @goal_xys)) >= @current_min
       @current_min = min
       @current_output = @rule_obj.get_output
     }

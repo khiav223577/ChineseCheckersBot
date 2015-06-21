@@ -20,7 +20,7 @@ module AI
       dy = txy[1] - xy[1]
       return [dx.abs, dy.abs, (dx + dy).abs].max
     end
-    def evaluation_function(current_xys, goal_xys)
+    def heuristic_function(current_xys, goal_xys)
       return current_xys.inject(0){|sum, xy|
         next sum + goal_xys.map{|gxy| get_distance_between(xy, gxy) }.min
       }
@@ -39,6 +39,7 @@ module AI
         @deep = 0
         for @your_xys_idx in @your_xys.size.times
           inner_for_each_legal_move
+          break if @cut_flag
         end
       end
       def get_output
@@ -46,6 +47,7 @@ module AI
       end
     private
       def inner_for_each_legal_move
+        return if @cut_flag
         @deep += 1
         xy = @your_xys[@your_xys_idx]
         @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]] if (can_walk_a_stone = (@deep == 1))
@@ -57,19 +59,20 @@ module AI
           if can_walk_a_stone and color1 == 0
             @your_xys[@your_xys_idx] = xy_step1
             @inner_output[@deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
-            @callback.call(@your_xys)
+            @cut_flag = (@callback.call(@your_xys) == :cut)
             @your_xys[@your_xys_idx] = xy
           end
           if color2 == 0 and color1 != nil and color1 != 0 and not @path_hash[bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]]
             @path_hash[bidx] = true
             @your_xys[@your_xys_idx] = xy_step2
             @inner_output[@deep] = bidx
-            @callback.call(@your_xys)
+            @cut_flag = (@callback.call(@your_xys) == :cut)
             inner_for_each_legal_move
             @inner_output[@deep] = Player::INVALID_BIDX
             @your_xys[@your_xys_idx] = xy
             @path_hash[bidx] = nil
           end
+          break if @cut_flag
         end
         @deep -= 1
       end
