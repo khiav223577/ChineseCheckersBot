@@ -36,14 +36,19 @@ module AI
       end
       def for_each_legal_move(&block)
         @callback = block
+        @deep = 0
         for @your_xys_idx in @your_xys.size.times
           inner_for_each_legal_move
         end
       end
+      def get_output
+        return @inner_output[0..@deep]
+      end
     private
-      def inner_for_each_legal_move(deep = 1)
+      def inner_for_each_legal_move
+        @deep += 1
         xy = @your_xys[@your_xys_idx]
-        @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]] if (can_walk_a_stone = (deep == 1))
+        @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]] if (can_walk_a_stone = (@deep == 1))
         for (x_chg, y_chg) in DIRECTIONS.shuffle
           xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
           xy_step2 = [xy_step1[0] + x_chg , xy_step1[1] + y_chg]
@@ -51,21 +56,22 @@ module AI
           color2 = @ai_base.get_color_at(xy_step2)
           if can_walk_a_stone and color1 == 0
             @your_xys[@your_xys_idx] = xy_step1
-            @inner_output[deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
-            @callback.call(deep, @your_xys, @inner_output)
+            @inner_output[@deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
+            @callback.call(@your_xys)
             @your_xys[@your_xys_idx] = xy
           end
           if color2 == 0 and color1 != nil and color1 != 0 and not @path_hash[bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]]
             @path_hash[bidx] = true
             @your_xys[@your_xys_idx] = xy_step2
-            @inner_output[deep] = bidx
-            @callback.call(deep, @your_xys, @inner_output)
-            inner_for_each_legal_move(deep + 1)
-            @inner_output[deep] = Player::INVALID_BIDX
+            @inner_output[@deep] = bidx
+            @callback.call(@your_xys)
+            inner_for_each_legal_move
+            @inner_output[@deep] = Player::INVALID_BIDX
             @your_xys[@your_xys_idx] = xy
             @path_hash[bidx] = nil
           end
         end
+        @deep -= 1
       end
     end
   end
