@@ -9,12 +9,13 @@ class AI::Greedy < AI::Base
     @output = output
   end
   def search
-    @current_min = INFINITY
+    current_min = INFINITY
+    current_output = nil
     @rule_obj.for_each_legal_move{|xys|
-      next if (min = heuristic_function(xys, @goal_xys)) >= @current_min
-      @current_min = min
-      @current_output = @rule_obj.get_output
+      next if (min = heuristic_function(xys, @goal_xys)) >= current_min
+      current_min = min
+      current_output = @rule_obj.get_output
     }
-    @current_output.each_with_index{|s, idx| @output[idx] = s }
+    current_output.each_with_index{|s, idx| @output[idx] = s }
   end
 end

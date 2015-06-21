@@ -2,6 +2,7 @@ require 'json'
 require File.expand_path('../lib/core', __FILE__)
 require File.expand_path('../lib/ruby/greedy_ai', __FILE__)
 require File.expand_path('../lib/ruby/alpha_beta_ai', __FILE__)
+require File.expand_path('../lib/ruby/greedy_min_max_ai', __FILE__)
 module AI_Manager
   class AI_Object
     def initialize(pre_process_type, ai_method)
@@ -37,5 +38,8 @@ module_function
   end
   def alpha_beta_ai
     return AI_Object.new(nil, lambda{|*args| AI::AlphaBeta.new(*args).search })
+  end
+  def greedy_min_max_ai
+    return AI_Object.new(nil, lambda{|*args| AI::GreedyMinMax.new(*args).search })
   end
 end
