@@ -8,6 +8,7 @@ class Player
     @ai = ai
     @move_count = 0
     @ai_result_size = 0
+    @sleep_counter = 0
   end
 #---------------------------------------------
 #  (Select/Deselect) a stone
@@ -71,7 +72,12 @@ class Player
   MAXIMUM_STEP_SIZE = 32 #maximum step number
   def update(window)
     if @ai
-      sleep CONFIG[:ai_sleep_time] #slow down AI's action speed
+      if @sleep_counter == 0
+        @sleep_counter = CONFIG[:ai_sleep_time] #slow down AI's action speed
+      else
+        @sleep_counter -= 1
+        return
+      end
       if @ai_result_size == 0
         players = @board.players.map{|s| s.color_idx }
         goals   = @board.players.map{|s| s.goal }

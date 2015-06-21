@@ -47,7 +47,7 @@ class Stone
     self.color_idx = @origin_color_idx
   end
   def switch_color_with(other)
-    @animation_buffer << [[10], [@rx, @ry], [other.rx, other.ry], (self.color_idx.to_i > 0 ? self.color_idx :  other.color_idx)]
+    @animation_buffer << [[90], [@rx, @ry], [other.rx, other.ry], (self.color_idx.to_i > 0 ? self.color_idx :  other.color_idx)]
     self.color_idx = other.color_idx
     other.release!
   end
@@ -72,20 +72,39 @@ class Stone
     need_compact_flag = false
     for ((time, xy1, xy2, color_idx),idx) in @animation_buffer.each_with_index
       time[1] = (time[1] ? time[1] : 0) + 1
-      ratio = 1 - [time[1] / time[0].to_f, 1].min
-      if ratio == 0
+      ratio = [time[1] / time[0].to_f, 1].min #0 => 1
+      if ratio == 1
         @animation_buffer[idx] = nil
         need_compact_flag = true
       end
       color = COLORS[color_idx][0].dup
-      color.alpha *= ratio * ratio
+      data = [0.0, 0.5, 1.0]
+      data.each_with_index{|s, idx|
+        next if ratio > s
+        pre = (idx == 0 ? 0 : data[idx - 1])
+        ratio = (ratio - pre) / (s - pre)
+        case idx
+        when 0 ; color.alpha = 200 * (ratio ** 4)
+        when 1 ; color.alpha = 200
+        when 2 ; color.alpha = 200 * ((1 - ratio) ** 4)
+        end
+        break
+      }
       sx = xy1[0] + offx
       sy = xy1[1] + offy
       ex = xy2[0] + offx
       ey = xy2[1] + offy
       side_vec = [ey - sy, -ex + sx]
       side_vec_len = Math.sqrt(side_vec[0] * side_vec[0] + side_vec[1] * side_vec[1])
-      side_vec.map!{|s| s / side_vec_len * 3}
+      widths = [5, 4]
+      side_vec.map!{|s| s / side_vec_len * widths[0]}
+      color2 = color.dup.filter_by_tint(0, 0, 0, 10)
+      window.draw_quad(
+        sx + side_vec[0], sy + side_vec[1], color2,
+        sx - side_vec[0], sy - side_vec[1], color2,
+        ex - side_vec[0], ey - side_vec[1], color2,
+        ex + side_vec[0], ey + side_vec[1], color2, Z_INDEX + 1)
+      side_vec.map!{|s| s / widths[0] * widths[1]}
       window.draw_quad(
         sx + side_vec[0], sy + side_vec[1], color,
         sx - side_vec[0], sy - side_vec[1], color,
