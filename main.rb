@@ -15,7 +15,7 @@ class ChineseCheckersWindow < Gosu::Window
   def initialize
     super(640, 480, false)
     @board = Board.new(320, 30, 30, 20)
-    @board.start_game(3, 2)
+    @board.start_game(6, 2)
     @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 32)
   end
   def needs_cursor?

@@ -1,6 +1,6 @@
 require File.expand_path('../ai_base', __FILE__)
 class AI::AlphaBeta < AI::Base
-  MAX_DEEP = 6
+  MAX_DEEP = 3
   def initialize(color_idx, players, board_states, goals, output)
     pidx = players.index(color_idx)
     [goals, players].each{|s| s.push(*s.shift(pidx)) } #rearrange the order of players
