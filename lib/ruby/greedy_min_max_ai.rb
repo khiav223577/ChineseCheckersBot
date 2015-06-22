@@ -12,8 +12,8 @@ private
     rule_obj = RuleExec.new(self, @players_xys[get_player_idx_by_depth(depth)])
     player_xy = @players_xys[player_idx]
     goal_xy = @goals_xys[player_idx]
+    origin_distances = player_xy.map{|xy| get_distance_between(xy, goal_xy.first) }
     if player_idx == 0
-      origin_distances = player_xy.map{|xy| get_distance_between(xy, goal_xy.first) }
       current_min = INFINITY
       rule_obj.for_each_legal_move{|xys, idx|
         next if get_distance_between(xys[idx], goal_xy.first) > origin_distances[idx]
@@ -25,7 +25,8 @@ private
     else
       current_min = INFINITY
       current_min_xys = nil
-      rule_obj.for_each_legal_move{|xys|
+      rule_obj.for_each_legal_move{|xys, idx|
+        next if get_distance_between(xys[idx], goal_xy.first) > origin_distances[idx]
         next if (min = heuristic_function(xys, goal_xy)) >= current_min
         current_min = min
         current_min_xys = xys.clone
