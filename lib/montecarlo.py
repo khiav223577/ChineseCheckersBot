@@ -40,7 +40,6 @@ class MonteCarlo:
 	cur_color = brd.color_idx
 	cur_board = brd.board_states
 	while True:
-	    print cur_color,cur_board
 	    all_move = brd.getLegalMove(cur_color,cur_board)
 	    move = random.choice(all_move)
 	    cur_board = brd.toNewBoard(cur_board,move[0],move[-1])
