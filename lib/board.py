@@ -54,7 +54,7 @@ class Board:
 	    #jump
 	    cur_move = [checker]
 	    all_boardhash = set([hash(str(board))])
-	    self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash)
+	    #self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash)
 	return all_step    
 
     def getJumpStep(self,all_step,color,cur_move,board,checker,all_boardhash):
