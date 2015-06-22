@@ -8,6 +8,7 @@ class Player
     @ai = ai
     @move_count = 0
     @ai_result_size = 0
+    @sleep_counter = 0
   end
 #---------------------------------------------
 #  (Select/Deselect) a stone
@@ -70,17 +71,27 @@ class Player
   INVALID_BIDX = 999 #must be unsigned integer and larger than the largest 'color_idx'
   MAXIMUM_STEP_SIZE = 32 #maximum step number
   def update(window)
+    return if @exec_ai_flag
     if @ai
-      sleep CONFIG[:ai_sleep_time] #slow down AI's action speed
+      if @sleep_counter == 0
+        @sleep_counter = CONFIG[:ai_sleep_time] #slow down AI's action speed
+      else
+        @sleep_counter -= 1
+        return
+      end
       if @ai_result_size == 0
         players = @board.players.map{|s| s.color_idx }
         goals   = @board.players.map{|s| s.goal }
         states  = @board.get_board_state_for_ai
-        result  = @ai.exec_ai(@color_idx, players, states, goals, Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX))
-        ridx    = result.index(INVALID_BIDX) #delete invalid bidx
-        @ai_result = (ridx ? result[0...ridx] : result).reverse
-        @ai_result_size = @ai_result.size
-        return :fail if @ai_result_size == 0
+        @exec_ai_flag = true
+        @ai.exec_ai(@color_idx, players, states, goals, Array.new(MAXIMUM_STEP_SIZE, INVALID_BIDX)){|result|
+          @exec_ai_flag = false
+          ridx    = result.index(INVALID_BIDX) #delete invalid bidx
+          @ai_result = (ridx ? result[0...ridx] : result).reverse
+          @ai_result_size = @ai_result.size
+          return :fail if @ai_result_size == 0
+        }
+        return
       end
       stone = @board.get_stone_by_bidx(@ai_result[@ai_result_size -= 1])
       status = play_a_action(stone)

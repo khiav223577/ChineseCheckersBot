@@ -35,6 +35,19 @@ class Board
   ]
   BOARD_XY_TO_BOARD_INDEX_HASH = {}
   ALL_BOARD_XY.each_with_index{|s, bidx| BOARD_XY_TO_BOARD_INDEX_HASH[s] = bidx }
+  XY_DIRECTIONS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]
+#-------------------------------
+#  bidx => [bidx1, bidx2, ...] #possiable move from bidx
+#-------------------------------
+  NEXT_BIDX_MAPPING = {}
+  ALL_BOARD_XY.size.times{|bidx|
+    NEXT_BIDX_MAPPING[bidx] = (array = [])
+    xy = Board::ALL_BOARD_XY[bidx]
+    for (x_chg, y_chg) in XY_DIRECTIONS
+      new_bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[[xy[0] + x_chg, xy[1] + y_chg]]
+      array << new_bidx
+    end
+  }
 =begin
                #0(0,0)
                   X
@@ -93,6 +106,7 @@ class Board
 #------------------------------------------
   def get_players_color(player_number, choose_color_idx) #get players' color
     idxs = case player_number
+           when 1 ; [0]
            when 2 ; [0, 3]
            when 3 ; [0, -2, 2]
            when 4 ; [0, 1, 3, 4]
@@ -103,6 +117,7 @@ class Board
   end
   def get_players_start_area(player_number) #get players' start area and goal
     aidxs = case player_number
+            when 1 ; [5]
             when 2 ; [5, 0]
             when 3 ; [5, 1, 2]
             when 4 ; [5, 4, 1, 0]
@@ -122,10 +137,10 @@ class Board
     colors = get_players_color(player_number, choose_color_idx)
     areas = get_players_start_area(player_number)
     @players = Array.new(player_number){|idx|
-      color = colors[idx]
-      areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color }
+      color_idx = colors[idx]
+      areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color_idx }
       ai = (idx == 0 ? AI_Manager.py_greedy_ai : AI_Manager.greedy_ai)
-      next Player.new(self, color, areas[idx][:goal], ai)
+      next Player.new(self, color_idx, areas[idx][:goal], ai)
     }
     @game = Game.new(@players)
   end
@@ -144,6 +159,18 @@ class Board
   def get_current_player_color
     return Stone::COLORS[@game.current_player.color_idx]
   end
+  def get_player_remains
+    @color_player_mapping ||= Hash[*players.map{|s| [s.color_idx, s]}.flatten]
+    hash = {}
+    get_board_state_for_ai.each_with_index{|s, bidx|
+      next if s == 0
+      xy = Board::ALL_BOARD_XY[bidx]
+      goal_xy = Board::ALL_BOARD_XY[@color_player_mapping[s].goal.first]
+      hash[s] ||= -20
+      hash[s] += AI::Base.get_distance_between(xy, goal_xy)
+    }
+    return hash
+  end
 #------------------------------------------
 #  render
 #------------------------------------------
@@ -157,6 +184,32 @@ class Board
     window.draw_square(85, 60, 10, get_current_player_color.first, BASE_ZIDX)
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
     @game.draw(window)
+    if (remains = self.get_player_remains) != nil
+      @players.each_with_index{|s, idx|
+        remain = remains[s.color_idx]
+        ratio = remain / 120.0
+        x = 550
+        y = 12 + 24 * idx
+        color = Stone::COLORS[s.color_idx][0]
+        bar_width = 70
+        offx = 0
+        offy = 12
+        color2 = color.dup.filter_by_tint(0, 0, 0, 80 / 255.0)
+        color3 = Gosu::Color.rgba(60, 60, 60, 255)
+        window.draw_quad(
+          offx + x - bar_width, offy + y - 5, color3,
+          offx + x - bar_width, offy + y + 5, color3,
+          offx + x + bar_width, offy + y + 5, color3,
+          offx + x + bar_width, offy + y - 5, color3, BASE_ZIDX)
+        window.draw_quad(
+          offx + x - bar_width * ratio, offy + y - 5, color2,
+          offx + x - bar_width * ratio, offy + y + 5, color2,
+          offx + x + bar_width * ratio, offy + y + 5, color2,
+          offx + x + bar_width * ratio, offy + y - 5, color2, BASE_ZIDX)
+        text_len = remain.to_s.size
+        @font.draw(remain.to_s, x - text_len * 6, y , BASE_ZIDX, 1.0, 1.0, color)
+      }
+    end
   end
 
   def get_board_state_for_ai
