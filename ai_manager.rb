@@ -10,20 +10,21 @@ module AI_Manager
       @ai_method = ai_method
     end
     def exec_ai(color_idx, *args) #args = [players, board_states, goals, output]
-      t = Time.now
-      case @pre_process_type
-      when :pack_pointer
-        args[2] = args[2].flatten
-        @ai_method.call(color_idx, *args.map!{|s| s.pack('I*')})
-        return args.last.unpack("I*")
-      when :to_json
-        return JSON.parse(@ai_method.call(color_idx, *args.map!{|s| s.to_json}))
-      else
-        @ai_method.call(color_idx, *args)
-        return args.last
-      end
-    ensure
-      puts "%6.1fms" % ((Time.now - t) * 1000)
+      Thread.new{
+        t = Time.now
+        case @pre_process_type
+        when :pack_pointer
+          args[2] = args[2].flatten
+          @ai_method.call(color_idx, *args.map!{|s| s.pack('I*')})
+          yield(args.last.unpack("I*"))
+        when :to_json
+          yield(JSON.parse(@ai_method.call(color_idx, *args.map!{|s| s.to_json})))
+        else
+          @ai_method.call(color_idx, *args)
+          yield(args.last)
+        end
+        puts "%6.1fms" % ((Time.now - t) * 1000)
+      }
     end
   end
 module_function
