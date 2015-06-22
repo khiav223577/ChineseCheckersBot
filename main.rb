@@ -2,11 +2,20 @@ require 'gosu'
 require File.expand_path('../input', __FILE__)
 require File.expand_path('../board', __FILE__)
 require File.expand_path('../ai_manager', __FILE__)
+CONFIG = {
+  :ai_sleep_time => 0.1,
+}
+ARGV.each{|s|
+  case s
+  when /^-debug=(.)$/ ; CONFIG[:ai_sleep_time] = 0 if $1.to_i != 0
+  when /^-sleep=(\d+)$/ ; CONFIG[:ai_sleep_time] = $1.to_i / 1000.0
+  end
+}
 class ChineseCheckersWindow < Gosu::Window
   def initialize
     super(640, 480, false)
     @board = Board.new(320, 30, 30, 20)
-    @board.start_game(3, 2)
+    @board.start_game(6, 2)
     @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 32)
   end
   def needs_cursor?
