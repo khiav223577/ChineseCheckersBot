@@ -10,7 +10,7 @@ class Board:
 	self.color_idx = 1
 	self.players = [1,2,3]
 	self.board_states = [0 for x in xrange(121)]
-	self.goal = [111,112,113,114,115,116,117,118,119,120]
+	self.goals = [[111,112,113,114,115,116,117,118,119,120]]
 	"""
 	self.ALL_BOARD_XY = [
 	    [0,0],
@@ -60,9 +60,9 @@ class Board:
 			all_step.append(move)
 	    
 	    #jump
-	    cur_move = [checker]
+	    cur_move = [checkerX]
 	    all_boardhash = set([hash(str(board))])
-	    self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash,deep_goalXY)
+	    self.getJumpStep(all_step,color,cur_move,board,checkerX,all_boardhash,deep_goalXY)
 	return all_step    
 
     def getJumpStep(self,all_step,color,cur_move,board,checkerX,all_boardhash,deep_goalXY):
@@ -84,7 +84,7 @@ class Board:
 		if self.approachGoal(checkerXY,newstepXY,deep_goalXY):
 		    all_step.append(new_move)
 		all_boardhash.add(new_boardhash)
-		self.getJumpStep(all_step,color,new_move,new_board,newstepX,all_boardhash)
+		self.getJumpStep(all_step,color,new_move,new_board,newstepX,all_boardhash,deep_goalXY)
 
     def approachGoal(self,start,dest,goal):
 	sdx = start[0] - goal[0]
