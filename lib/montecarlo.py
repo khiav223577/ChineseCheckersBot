@@ -34,7 +34,6 @@ class MonteCarlo:
 		max_winrate = winrate
 		ans = move
 
-	ans = random.choice(all_move)
 	return ans
     
     def Simulate(self,brd):
