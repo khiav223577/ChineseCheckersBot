@@ -26,7 +26,6 @@ class MonteCarlo:
 	    for b in final_brd.child:
 		for i in xrange(100):
 		    self.Simulate(b)
-	    break
 	
 	max_winrate = -float("inf")
 	for child,move in zip(brd.child,brd.getLegalMove(brd.color_idx,brd.board_states)):
@@ -73,8 +72,8 @@ if __name__ == '__main__':
     output = json.loads(sys.argv[5])
 
     brd = Board(playerID,players,board,goals)
+
     AI = MonteCarlo()
-    
     ans = AI.determine(brd)
 
     print json.dumps(ans) #output
