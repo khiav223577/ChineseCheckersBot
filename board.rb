@@ -39,9 +39,9 @@ class Board
 #-------------------------------
 #  bidx => [bidx1, bidx2, ...] #possiable move from bidx
 #-------------------------------
-  BIDX_POSSIBLE_NEW_BIDX_MAPPING = {}
+  NEXT_BIDX_MAPPING = {}
   ALL_BOARD_XY.size.times{|bidx|
-    BIDX_POSSIBLE_NEW_BIDX_MAPPING[bidx] = (array = [])
+    NEXT_BIDX_MAPPING[bidx] = (array = [])
     xy = Board::ALL_BOARD_XY[bidx]
     for (x_chg, y_chg) in XY_DIRECTIONS
       new_bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[[xy[0] + x_chg, xy[1] + y_chg]]

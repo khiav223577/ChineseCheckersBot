@@ -34,10 +34,12 @@ module AI
 #  RuleExec
 #----------------------------------
     class RuleExec
-      def initialize(ai_base, your_xys)
+      def initialize(ai_base, your_xys, goal_xy = nil)
         @ai_base = ai_base
         @path_hash = {}
         @your_xys = your_xys
+        @goal_xy = goal_xy
+        @origin_distances = your_xys.map{|xy| @ai_base.get_distance_between(xy, goal_xy) } if goal_xy
       end
       def for_each_legal_move(&block)
         @callback = block
@@ -57,55 +59,38 @@ module AI
         @deep += 1
         xy = @your_xys[@your_xys_idx]
         bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]
-        new_bidxs = Board::BIDX_POSSIBLE_NEW_BIDX_MAPPING[bidx]
+        new_bidxs = Board::NEXT_BIDX_MAPPING[bidx]
         @inner_output = [Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]] if (can_walk_a_stone = (@deep == 1))
         for dir in [0, 1, 2, 3, 4, 5].shuffle
           next if (new_bidx = new_bidxs[dir]) == nil
           color1 = @ai_base.board_states[new_bidx]
           if can_walk_a_stone and color1 == 0
-            @your_xys[@your_xys_idx] = Board::ALL_BOARD_XY[new_bidx]
-            @inner_output[@deep] = new_bidx
-            @cut_flag = (@callback.call(@your_xys, @your_xys_idx) == :cut)
-            @your_xys[@your_xys_idx] = xy
+            new_xy1 = Board::ALL_BOARD_XY[new_bidx]
+            if @goal_xy == nil or @ai_base.get_distance_between(new_xy1, @goal_xy) <= @origin_distances[@your_xys_idx]
+              @your_xys[@your_xys_idx] = new_xy1
+              @inner_output[@deep] = new_bidx
+              @cut_flag = (@callback.call(@your_xys) == :cut)
+              @your_xys[@your_xys_idx] = xy
+            end
           end
           next if color1 == nil or color1 == 0
-          next if (new_bidx2 = Board::BIDX_POSSIBLE_NEW_BIDX_MAPPING[new_bidx][dir]) == nil
+          next if (new_bidx2 = Board::NEXT_BIDX_MAPPING[new_bidx][dir]) == nil
           color2 = @ai_base.board_states[new_bidx2]
           if color2 == 0 and not @path_hash[new_bidx2]
-            @path_hash[new_bidx2] = true
-            @your_xys[@your_xys_idx] = Board::ALL_BOARD_XY[new_bidx2]
-            @inner_output[@deep] = new_bidx2
-            @cut_flag = (@callback.call(@your_xys, @your_xys_idx) == :cut)
-            inner_for_each_legal_move
-            @inner_output[@deep] = Player::INVALID_BIDX
-            @your_xys[@your_xys_idx] = xy
-            @path_hash[new_bidx2] = nil
+            new_xy2 = Board::ALL_BOARD_XY[new_bidx2]
+            if @goal_xy == nil or @ai_base.get_distance_between(new_xy2, @goal_xy) <= @origin_distances[@your_xys_idx]
+              @path_hash[new_bidx2] = true
+              @your_xys[@your_xys_idx] = Board::ALL_BOARD_XY[new_bidx2]
+              @inner_output[@deep] = new_bidx2
+              @cut_flag = (@callback.call(@your_xys) == :cut)
+              inner_for_each_legal_move
+              @inner_output[@deep] = Player::INVALID_BIDX
+              @your_xys[@your_xys_idx] = xy
+              @path_hash[new_bidx2] = nil
+            end
           end
           break if @cut_flag
         end
-        # for (x_chg, y_chg) in Board::XY_DIRECTIONS.shuffle
-        #   xy_step1 = [xy[0] + x_chg, xy[1] + y_chg]
-        #   xy_step2 = [xy_step1[0] + x_chg , xy_step1[1] + y_chg]
-        #   color1 = @ai_base.get_color_at(xy_step1)
-        #   color2 = @ai_base.get_color_at(xy_step2)
-        #   if can_walk_a_stone and color1 == 0
-        #     @your_xys[@your_xys_idx] = xy_step1
-        #     @inner_output[@deep] = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step1]
-        #     @cut_flag = (@callback.call(@your_xys, @your_xys_idx) == :cut)
-        #     @your_xys[@your_xys_idx] = xy
-        #   end
-        #   if color2 == 0 and color1 != nil and color1 != 0 and not @path_hash[bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy_step2]]
-        #     @path_hash[bidx] = true
-        #     @your_xys[@your_xys_idx] = xy_step2
-        #     @inner_output[@deep] = bidx
-        #     @cut_flag = (@callback.call(@your_xys, @your_xys_idx) == :cut)
-        #     inner_for_each_legal_move
-        #     @inner_output[@deep] = Player::INVALID_BIDX
-        #     @your_xys[@your_xys_idx] = xy
-        #     @path_hash[bidx] = nil
-        #   end
-        #   break if @cut_flag
-        # end
         @deep -= 1
       end
     end
