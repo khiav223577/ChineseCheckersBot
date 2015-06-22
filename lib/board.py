@@ -2,6 +2,7 @@ import sys,copy
 
 class Board:
     def __init__(self,playerID,players,board,goals):
+	"""
 	self.color_idx = playerID #1
 	self.players = players #[1,2,3]
 	self.board_states = board #[0 for x in xrange(121)]
@@ -11,7 +12,7 @@ class Board:
 	self.players = [1,2,3]
 	self.board_states = [0 for x in xrange(121)]
 	self.goals = [[111,112,113,114,115,116,117,118,119,120]]
-	"""
+	self.child = []
 	self.ALL_BOARD_XY = [
 	    [0,0],
 	    [0,1],[1,0],
@@ -31,7 +32,6 @@ class Board:
 	    [7,8],[8,7], 
 	    [8,8]
 	]
-	"""
 	for i in xrange(121):
 	    if i in [111,112,113,114,115,116,117,118,119,120]:
 		self.board_states[i] = 1
@@ -39,7 +39,13 @@ class Board:
 		self.board_states[i] = 2
 	    else: 
 		self.board = 0
-	"""
+    """	
+    def expand(self):
+	for move in self.getLegalMove(self.color_idx,self.board_states):
+	    new_board = self.toNewBoard(self.board_states,move[0],move[-1])
+	    nxt_color = self.players.index(color_idx)
+    """
+
     def getLegalMove(self,color,board):
 	all_step = []
 	mychecker = self.getPlayerChecker(board,color)
@@ -92,10 +98,10 @@ class Board:
 	sd = max(abs(sdx),abs(sdy),abs(sdx+sdy))
 
 	ddx = dest[0] - goal[0]
-	ddy = dest[0] - goal[0]
+	ddy = dest[1] - goal[1]
 	dd = max(abs(ddx),abs(ddy),abs(ddx+ddy))
 
-	return (dd <= sd)
+	return (dd <= sd) or dd <= 3
 	
     def toNewBoard(self,board,cur,dest):
 	brd = copy.copy(board)
