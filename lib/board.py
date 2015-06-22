@@ -5,7 +5,7 @@ class Board:
 	self.color_idx = playerID #1
 	self.players = players #[1,2,3]
 	self.board_states = board #[0 for x in xrange(121)]
-	self.goal = goals #[111,112,113,114,115,116,117,118,119,120]
+	self.goals = goals #[[111,112,113,114,115,116,117,118,119,120],...]
 	"""
 	self.color_idx = 1
 	self.players = [1,2,3]
@@ -44,50 +44,63 @@ class Board:
 	all_step = []
 	mychecker = self.getPlayerChecker(board,color)
 	walksteps = [[1,0],[0,1],[-1,0],[0,-1],[1,-1],[-1,1]]
-	for checker in mychecker:
-	    checkerXY = self.XtoXY(checker)
+	deep_goalX = self.goals[self.players.index(color)][0]
+	deep_goalXY = self.XtoXY(deep_goal)
+	for checkerX in mychecker:
+	    checkerXY = self.XtoXY(checkerX)
 	    #walk
 	    for walkstep in walksteps:
-		newstep = [x+y for x,y in zip(checkerXY,walkstep)]
-		if newstep not in self.ALL_BOARD_XY:
+		newstepXY = [x+y for x,y in zip(checkerXY,walkstep)]
+		if newstepXY not in self.ALL_BOARD_XY:
 		    continue
-		newstepX = self.XYtoX(newstep)
-		if board[newstepX] == 0:
-		    move = [checker, newstepX]
-		    #new_board = self.toNewBoard(color,board,checker,newstepX)
-		    all_step.append(move)
+		newstepX = self.XYtoX(newstepXY)
+		if board[newstepX] == 0 and self.approachGoal(checkerXY,newstepXY,deep_goalXY):
+			move = [checkerX, newstepX]
+			#new_board = self.toNewBoard(color,board,checkerX,newstepX)
+			all_step.append(move)
 	    
 	    #jump
 	    cur_move = [checker]
 	    all_boardhash = set([hash(str(board))])
-	    self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash)
+	    self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash,deep_goalXY)
 	return all_step    
 
-    def getJumpStep(self,all_step,color,cur_move,board,checker,all_boardhash):
+    def getJumpStep(self,all_step,color,cur_move,board,checkerX,all_boardhash,deep_goalXY):
 	jumpsteps = [[2,0],[0,2],[-2,0],[0,-2],[2,-2],[-2,2]]
-	checkerXY = self.XtoXY(checker)
+	checkerXY = self.XtoXY(checkerX)
 	for jumpstep in jumpsteps:
-	    newstep = [x+y for x,y in zip(checkerXY,jumpstep)]
+	    newstepXY = [x+y for x,y in zip(checkerXY,jumpstep)]
 	    middle = [int(x+y/2) for x,y in zip(checkerXY,jumpstep)]
-	    if newstep not in self.ALL_BOARD_XY or middle not in self.ALL_BOARD_XY:
+	    if newstepXY not in self.ALL_BOARD_XY or middle not in self.ALL_BOARD_XY:
 		continue
-	    newstepX = self.XYtoX(newstep)
+	    newstepX = self.XYtoX(newstepXY)
 	    middleX = self.XYtoX(middle)
 	    if board[newstepX] == 0 and board[middleX] != 0:
 		new_move = cur_move + [newstepX]
-		new_board = self.toNewBoard(color,board,checker,newstepX)
+		new_board = self.toNewBoard(board,checkerX,newstepX)
 		new_boardhash = hash(str(new_board))
 		if new_boardhash in all_boardhash:
 		    continue
-		all_step.append(new_move)
+		if self.approachGoal(checkerXY,newstepXY,deep_goalXY):
+		    all_step.append(new_move)
 		all_boardhash.add(new_boardhash)
 		self.getJumpStep(all_step,color,new_move,new_board,newstepX,all_boardhash)
 
+    def approachGoal(self,start,dest,goal):
+	sdx = start[0] - goal[0]
+	sdy = start[1] - goal[1]
+	sd = max(abs(sdx),abs(sdy),abs(sdx+sdy))
 
-    def toNewBoard(self,color,board,cur,dest):
+	ddx = dest[0] - goal[0]
+	ddy = dest[0] - goal[0]
+	dd = max(abs(ddx),abs(ddy),abs(ddx+ddy))
+
+	return (dd <= sd)
+	
+    def toNewBoard(self,board,cur,dest):
 	brd = copy.copy(board)
+	brd[dest] = brd[cur]
 	brd[cur] = 0
-	brd[dest] = color
 	return brd
 
     def getPlayerChecker(self,board,color):
