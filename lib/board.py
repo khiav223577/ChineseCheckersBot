@@ -6,6 +6,12 @@ class Board:
 	self.players = players #[1,2,3]
 	self.board_states = board #[0 for x in xrange(121)]
 	self.goal = goals #[111,112,113,114,115,116,117,118,119,120]
+	"""
+	self.color_idx = 1
+	self.players = [1,2,3]
+	self.board_states = [0 for x in xrange(121)]
+	self.goal = [111,112,113,114,115,116,117,118,119,120]
+	"""
 	self.ALL_BOARD_XY = [
 	    [0,0],
 	    [0,1],[1,0],
@@ -27,7 +33,7 @@ class Board:
 	]
 	"""
 	for i in xrange(121):
-	    if i <= 9:
+	    if i in [111,112,113,114,115,116,117,118,119,120]:
 		self.board_states[i] = 1
 	    elif i in [10,11,12,13,23,24,25,35,36,46]:
 		self.board_states[i] = 2
@@ -37,7 +43,7 @@ class Board:
     def getLegalMove(self,color,board):
 	all_step = []
 	mychecker = self.getPlayerChecker(board,color)
-	walksteps = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,-1]]
+	walksteps = [[1,0],[0,1],[-1,0],[0,-1],[1,-1],[-1,1]]
 	for checker in mychecker:
 	    checkerXY = self.XtoXY(checker)
 	    #walk
@@ -54,11 +60,11 @@ class Board:
 	    #jump
 	    cur_move = [checker]
 	    all_boardhash = set([hash(str(board))])
-	    #self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash)
+	    self.getJumpStep(all_step,color,cur_move,board,checker,all_boardhash)
 	return all_step    
 
     def getJumpStep(self,all_step,color,cur_move,board,checker,all_boardhash):
-	jumpsteps = [[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,-2]]
+	jumpsteps = [[2,0],[0,2],[-2,0],[0,-2],[2,-2],[-2,2]]
 	checkerXY = self.XtoXY(checker)
 	for jumpstep in jumpsteps:
 	    newstep = [x+y for x,y in zip(checkerXY,jumpstep)]
