@@ -13,10 +13,10 @@ private
     player_xy = @players_xys[player_idx]
     goal_xy = @goals_xys[player_idx]
     if player_idx == 0
-      origin_value = heuristic_function(player_xy, goal_xy)
+      origin_distances = player_xy.map{|xy| get_distance_between(xy, goal_xy.first) }
       current_min = INFINITY
-      rule_obj.for_each_legal_move{|xy|
-        next if heuristic_function(xy, goal_xy) > origin_value
+      rule_obj.for_each_legal_move{|xys, idx|
+        next if get_distance_between(xys[idx], goal_xy.first) > origin_distances[idx]
         next if (min = min_max(depth + 1)) >= current_min
         current_min = min
         @current_output = rule_obj.get_output if depth == 1
