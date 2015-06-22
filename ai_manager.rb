@@ -32,6 +32,9 @@ module_function
   def py_hello_world_ai #test python
     AI_Object.new(:to_json, lambda{|*args| %x(python #{File.expand_path('../lib/helloworld.py', __FILE__)} #{args.join(' ')}) })
   end
+  def py_greedy_ai #test python
+    AI_Object.new(:to_json, lambda{|*args| %x(python #{File.expand_path('../lib/greedy.py', __FILE__)} #{args.join(' ')}) })
+  end
   def greedy_ai
     return AI_Object.new(nil, lambda{|*args| AI::Greedy.new(*args).search })
   end
