@@ -23,5 +23,5 @@ if __name__ == '__main__':
     
     ans = AI.determine(brd)
 
-    print json.dumps(mapping[ans]) #output
+    print json.dumps(ans) #output
 
