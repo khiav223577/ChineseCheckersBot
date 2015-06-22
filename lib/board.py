@@ -1,18 +1,22 @@
-import sys,copy
+import sys,copy,math
 
 class Board:
     def __init__(self,playerID,players,board,goals):
-	"""
 	self.color_idx = playerID #1
 	self.players = players #[1,2,3]
 	self.board_states = board #[0 for x in xrange(121)]
 	self.goals = goals #[[111,112,113,114,115,116,117,118,119,120],...]
 	"""
 	self.color_idx = 1
-	self.players = [1,2,3]
+	self.players = [1,2]
 	self.board_states = [0 for x in xrange(121)]
-	self.goals = [[111,112,113,114,115,116,117,118,119,120]]
+	self.goals = [[111,112,113,114,115,116,117,118,119,120],[ 10, 23, 11, 35, 24, 12, 46, 36, 25, 13]]
+	"""
+	self.parent = None
 	self.child = []
+	self.Wi = 0.
+	self.Ni = 0.
+	self.c = 0.8
 	self.ALL_BOARD_XY = [
 	    [0,0],
 	    [0,1],[1,0],
@@ -32,6 +36,7 @@ class Board:
 	    [7,8],[8,7], 
 	    [8,8]
 	]
+	"""
 	for i in xrange(121):
 	    if i in [111,112,113,114,115,116,117,118,119,120]:
 		self.board_states[i] = 1
@@ -39,12 +44,18 @@ class Board:
 		self.board_states[i] = 2
 	    else: 
 		self.board = 0
-    """	
+	"""
+
     def expand(self):
 	for move in self.getLegalMove(self.color_idx,self.board_states):
 	    new_board = self.toNewBoard(self.board_states,move[0],move[-1])
-	    nxt_color = self.players.index(color_idx)
-    """
+	    new_color = self.players[(self.players.index(self.color_idx)+1)%len(self.players)]
+	    self.child.append(Board(new_color,self.players,new_board,self.goals))
+	for child in self.child:
+	    child.parent = self
+
+    def UCB(self):
+	return self.Wi/self.Ni+self.c*math.sqrt(math.log(self.parent.Ni)/self.Ni)
 
     def getLegalMove(self,color,board):
 	all_step = []
