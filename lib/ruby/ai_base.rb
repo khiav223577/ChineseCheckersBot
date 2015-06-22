@@ -15,19 +15,20 @@ module AI
       return nil if (bidx = Board::BOARD_XY_TO_BOARD_INDEX_HASH[xy]) == nil
       return @board_states[bidx]
     end
-    def get_distance_between(xy, txy)
+    def self.get_distance_between(xy, txy)
       dx = txy[0] - xy[0]
       dy = txy[1] - xy[1]
-      return [dx.abs, dy.abs, (dx + dy).abs].max
+      return [dx.abs, dy.abs, (dx + dy).abs].
+      max
     end
     def heuristic_function(current_xys, goal_xys)
       return current_xys.inject(0){|sum, xy|
-        distance = get_distance_between(xy, goal_xys.first)
+        distance = self.class.get_distance_between(xy, goal_xys.first)
         distance /= 2 if distance <= 3 #already reach goal
         next sum + distance
       }
       return current_xys.inject(0){|sum, xy|
-        next sum + goal_xys.map{|gxy| get_distance_between(xy, gxy) }.min
+        next sum + goal_xys.map{|gxy| self.class.get_distance_between(xy, gxy) }.min
       }
     end
 #----------------------------------
@@ -39,7 +40,7 @@ module AI
         @path_hash = {}
         @your_xys = your_xys
         @goal_xy = goal_xy
-        @origin_distances = your_xys.map{|xy| @ai_base.get_distance_between(xy, goal_xy) } if goal_xy
+        @origin_distances = your_xys.map{|xy| AI::Base.get_distance_between(xy, goal_xy) } if goal_xy
       end
       def for_each_legal_move(&block)
         @callback = block
@@ -66,7 +67,7 @@ module AI
           color1 = @ai_base.board_states[new_bidx]
           if can_walk_a_stone and color1 == 0
             new_xy1 = Board::ALL_BOARD_XY[new_bidx]
-            if @goal_xy == nil or @ai_base.get_distance_between(new_xy1, @goal_xy) <= @origin_distances[@your_xys_idx]
+            if @goal_xy == nil or AI::Base.get_distance_between(new_xy1, @goal_xy) <= @origin_distances[@your_xys_idx]
               @your_xys[@your_xys_idx] = new_xy1
               @inner_output[@deep] = new_bidx
               @cut_flag = (@callback.call(@your_xys) == :cut)
@@ -78,7 +79,7 @@ module AI
           color2 = @ai_base.board_states[new_bidx2]
           if color2 == 0 and not @path_hash[new_bidx2]
             new_xy2 = Board::ALL_BOARD_XY[new_bidx2]
-            if @goal_xy == nil or @ai_base.get_distance_between(new_xy2, @goal_xy) <= @origin_distances[@your_xys_idx]
+            if @goal_xy == nil or AI::Base.get_distance_between(new_xy2, @goal_xy) <= @origin_distances[@your_xys_idx]
               @path_hash[new_bidx2] = true
               @your_xys[@your_xys_idx] = Board::ALL_BOARD_XY[new_bidx2]
               @inner_output[@deep] = new_bidx2

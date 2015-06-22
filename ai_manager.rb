@@ -10,7 +10,7 @@ module AI_Manager
       @ai_method = ai_method
     end
     def exec_ai(color_idx, *args) #args = [players, board_states, goals, output]
-     # Thread.new{
+     Thread.new{
         t = Time.now
         case @pre_process_type
         when :pack_pointer
@@ -24,7 +24,7 @@ module AI_Manager
           yield(args.last)
         end
         puts "%6.1fms" % ((Time.now - t) * 1000)
-      #}
+      }
     end
   end
 module_function

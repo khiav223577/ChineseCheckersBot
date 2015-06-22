@@ -14,7 +14,7 @@ ARGV.each{|s|
 class ChineseCheckersWindow < Gosu::Window
   def initialize
     super(640, 480, false)
-    @board = Board.new(320, 30, 30, 20)
+    @board = Board.new(280, 30, 30, 20)
     @board.start_game(4, 2)
     @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 32)
   end
