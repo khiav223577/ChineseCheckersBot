@@ -45,7 +45,7 @@ class Board:
 	mychecker = self.getPlayerChecker(board,color)
 	walksteps = [[1,0],[0,1],[-1,0],[0,-1],[1,-1],[-1,1]]
 	deep_goalX = self.goals[self.players.index(color)][0]
-	deep_goalXY = self.XtoXY(deep_goal)
+	deep_goalXY = self.XtoXY(deep_goalX)
 	for checkerX in mychecker:
 	    checkerXY = self.XtoXY(checkerX)
 	    #walk
@@ -117,5 +117,3 @@ class Board:
 	return self.ALL_BOARD_XY.index(XY)
 
 
-if __name__ == "__main__":
-    ChineseCheckers = Board()
