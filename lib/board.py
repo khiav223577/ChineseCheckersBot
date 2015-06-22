@@ -1,11 +1,11 @@
 import sys,copy
 
 class Board:
-    def __init__(self):
-	self.color_idx = 1
-	self.players = [1,2,3]
-	self.board_states = [0 for x in xrange(121)]
-	self.goal = [111,112,113,114,115,116,117,118,119,120]
+    def __init__(self,playerID,players,board,goals):
+	self.color_idx = playerID #1
+	self.players = players #[1,2,3]
+	self.board_states = board #[0 for x in xrange(121)]
+	self.goal = goals #[111,112,113,114,115,116,117,118,119,120]
 	self.ALL_BOARD_XY = [
 	    [0,0],
 	    [0,1],[1,0],
@@ -25,7 +25,7 @@ class Board:
 	    [7,8],[8,7], 
 	    [8,8]
 	]
-
+	"""
 	for i in xrange(121):
 	    if i <= 9:
 		self.board_states[i] = 1
@@ -33,7 +33,7 @@ class Board:
 		self.board_states[i] = 2
 	    else: 
 		self.board = 0
-
+	"""
     def getLegalMove(self,color,board):
 	all_step = []
 	mychecker = self.getPlayerChecker(board,color)
