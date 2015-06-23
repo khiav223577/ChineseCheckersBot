@@ -19,21 +19,21 @@ class ChineseCheckersWindow < Gosu::Window
 
     #----------choose the number of players----------
     @number_buttons = Hash[*Board::AVAILABLE_PLAYER_NUMBERS.map.with_index{|s, idx|
-      next [s, ButtonObj.new(75, 220 + 30 * idx, 25, 25, s.to_s){|btn|
-        @current_select_number = s
-      }]
+      next [s, ButtonObj.new(105, 220 + 30 * idx, 25, 25, s.to_s){ @current_select_number = s }]
     }.flatten]
-    ButtonObj.bind_buttons(@number_buttons.values)
+    ButtonObj.bind_as_group!(@number_buttons.values)
     @number_buttons[4].click!
     #----------choose play mode----------
-
     @mode_buttons = [
-      # ButtonObj.new(75, 240, 120, 30, 'player'){ @current_select_mode = :player},
-      # ButtonObj.new(75, 280, 120, 30, 'computer'){ @current_select_mode = :computer },
+      ButtonObj.new(50, 240, 50, 30, 'CvP'){ @current_select_mode = :CvP},
+      ButtonObj.new(50, 280, 50, 30, 'CvC'){ @current_select_mode = :CvC },
+      ButtonObj.new(50, 320, 50, 30, 'PvP'){ @current_select_mode = :PvP },
     ]
+    ButtonObj.bind_as_group!(@mode_buttons)
+    @mode_buttons[0].click!
     #----------new game button----------
     @buttons = [
-      ButtonObj.new(75, 180, 120, 30, 'new game'){ @board.start_game(@current_select_number, rand(@current_select_number))},
+      ButtonObj.new(75, 180, 120, 30, 'new game'){ @board.start_game(@current_select_mode, @current_select_number, rand(@current_select_number))},
     ]
     @buttons.first.click!
 

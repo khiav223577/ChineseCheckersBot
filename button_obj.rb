@@ -2,7 +2,7 @@ class ButtonObj
   attr_accessor :highlighted_bk_color
   attr_reader :bind_events_callback
   class << self
-    def bind_buttons(buttons)
+    def bind_as_group!(buttons)
       callback = proc{|btn|
         buttons.each{|s| s.highlighted_bk_color = nil }
         btn.highlighted_bk_color = Gosu::Color.rgba(220, 120, 120, 200)
@@ -47,6 +47,6 @@ class ButtonObj
       @x2, @y2, bk_color,
       @x1, @y2, bk_color, @z_index)
     text_len = @text.size
-    @font.draw(@text, @x - text_len * 6.2, @y - 12 , @z_index, 1.0, 1.0, @text_color)
+    @font.draw(@text, @x - text_len * 6.4, @y - 12 , @z_index, 1.0, 1.0, @text_color)
   end
 end
