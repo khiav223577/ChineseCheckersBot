@@ -14,7 +14,7 @@ ARGV.each{|s|
 }
 class ChineseCheckersWindow < Gosu::Window
   def initialize
-    super(640, 480, false)
+    super(640, 480, true)
     @board = Board.new(320, 30, 30, 20)
 
     #----------choose the number of players----------
@@ -25,7 +25,7 @@ class ChineseCheckersWindow < Gosu::Window
     @number_buttons[4].click!
     #----------choose play mode----------
     @mode_buttons = [
-      ButtonObj.new(50, 240, 50, 30, 'CvP'){ @current_select_mode = :CvP},
+      ButtonObj.new(50, 240, 50, 30, 'CvP'){ @current_select_mode = :CvP },
       ButtonObj.new(50, 280, 50, 30, 'CvC'){ @current_select_mode = :CvC },
       ButtonObj.new(50, 320, 50, 30, 'PvP'){ @current_select_mode = :PvP },
     ]
@@ -70,6 +70,8 @@ class ChineseCheckersWindow < Gosu::Window
 #  render
 #-----------------------------------
   def update
+    exit if Input.trigger?(Gosu::KbEscape)
+    # @buttons.first.click! if @board.game.current_status == :win
     self.caption = "#{Gosu.fps} FPS - Chinese Checkers Game"
     @board.update(self)
     @buttons.each{|s| s.update(self) }

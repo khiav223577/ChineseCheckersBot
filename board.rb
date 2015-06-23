@@ -228,6 +228,7 @@ class Board
 #===================================
 #  Game
 #===================================
+  attr_reader :game
   class Game
     attr_reader :stones
     def initialize(players)
@@ -243,6 +244,7 @@ class Board
 #------------------------------------------
 #  render
 #------------------------------------------
+    attr_reader :current_status
     def update(window)
       return if @current_status != nil
       case self.current_player.update(window)
