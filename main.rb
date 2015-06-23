@@ -17,20 +17,24 @@ class ChineseCheckersWindow < Gosu::Window
     super(640, 480, false)
     @board = Board.new(320, 30, 30, 20)
 
-    @buttons = []
-    @current_select_number = nil
+    #----------choose the number of players----------
     @number_buttons = Hash[*Board::AVAILABLE_PLAYER_NUMBERS.map.with_index{|s, idx|
       next [s, ButtonObj.new(75, 220 + 30 * idx, 25, 25, s.to_s){|btn|
         @current_select_number = s
-        @number_buttons.values.each{|s| s.highlighted_bk_color = nil }
-        btn.highlighted_bk_color = Gosu::Color.rgba(220, 120, 120, 200)
       }]
     }.flatten]
-    @current_select_number = 2
-    @buttons << ButtonObj.new(75, 180, 120, 30, 'new game'){
-      @board.start_game(@current_select_number, rand(@current_select_number))
-    }
+    ButtonObj.bind_buttons(@number_buttons.values)
     @number_buttons[4].click!
+    #----------choose play mode----------
+
+    @mode_buttons = [
+      # ButtonObj.new(75, 240, 120, 30, 'player'){ @current_select_mode = :player},
+      # ButtonObj.new(75, 280, 120, 30, 'computer'){ @current_select_mode = :computer },
+    ]
+    #----------new game button----------
+    @buttons = [
+      ButtonObj.new(75, 180, 120, 30, 'new game'){ @board.start_game(@current_select_number, rand(@current_select_number))},
+    ]
     @buttons.first.click!
 
     @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 32)
@@ -69,6 +73,7 @@ class ChineseCheckersWindow < Gosu::Window
     self.caption = "#{Gosu.fps} FPS - Chinese Checkers Game"
     @board.update(self)
     @buttons.each{|s| s.update(self) }
+    @mode_buttons.each{|s| s.update(self) }
     @number_buttons.values.each{|s| s.update(self) }
     Input.update #must at the end of this method
   end
@@ -76,6 +81,7 @@ class ChineseCheckersWindow < Gosu::Window
     @message.draw(10, 10, 0)
     @board.draw(self)
     @buttons.each{|s| s.draw(self) }
+    @mode_buttons.each{|s| s.draw(self) }
     @number_buttons.values.each{|s| s.draw(self) }
     @cursors[:normal].draw(mouse_x, mouse_y, 99999)
   end

@@ -1,5 +1,15 @@
 class ButtonObj
   attr_accessor :highlighted_bk_color
+  attr_reader :bind_events_callback
+  class << self
+    def bind_buttons(buttons)
+      callback = proc{|btn|
+        buttons.each{|s| s.highlighted_bk_color = nil }
+        btn.highlighted_bk_color = Gosu::Color.rgba(220, 120, 120, 200)
+      }
+      buttons.each{|s| s.bind_events_callback << callback }
+    end
+  end
   def initialize(x, y, width, height, text, background_color = nil, text_color = nil, &on_click)
     @x = x
     @y = y
@@ -10,9 +20,11 @@ class ButtonObj
     @background_color = background_color || Gosu::Color.rgba(160, 160, 160, 200)
     @text_color = text_color || Gosu::Color.rgba(255, 255, 255, 255)
     @on_click = on_click
+    @bind_events_callback = []
   end
   def click!
     @on_click.call(self) if @on_click
+    @bind_events_callback.each{|s| s.call(self)}
   end
   def update(window)
     @x1 = @x - @width / 2
