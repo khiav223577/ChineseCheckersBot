@@ -18,20 +18,19 @@ class ChineseCheckersWindow < Gosu::Window
     @board = Board.new(320, 30, 30, 20)
 
     @buttons = []
-    @number_buttons = []
     @current_select_number = nil
-    @number_buttons.push(*[1,2,3,4,6].map.with_index{|s, idx|
-      next ButtonObj.new(75, 220 + 30 * idx, 25, 25, s.to_s){|btn|
+    @number_buttons = Hash[*Board::AVAILABLE_PLAYER_NUMBERS.map.with_index{|s, idx|
+      next [s, ButtonObj.new(75, 220 + 30 * idx, 25, 25, s.to_s){|btn|
         @current_select_number = s
-        @number_buttons.each{|s| s.highlighted_bk_color = nil }
+        @number_buttons.values.each{|s| s.highlighted_bk_color = nil }
         btn.highlighted_bk_color = Gosu::Color.rgba(220, 120, 120, 200)
-      }
-    })
+      }]
+    }.flatten]
     @current_select_number = 2
     @buttons << ButtonObj.new(75, 180, 120, 30, 'new game'){
       @board.start_game(@current_select_number, rand(@current_select_number))
     }
-    @number_buttons[3].click!
+    @number_buttons[4].click!
     @buttons.first.click!
 
     @message = Gosu::Image.from_text(self, 'Hello, World!', Gosu.default_font_name, 32)
@@ -70,14 +69,14 @@ class ChineseCheckersWindow < Gosu::Window
     self.caption = "#{Gosu.fps} FPS - Chinese Checkers Game"
     @board.update(self)
     @buttons.each{|s| s.update(self) }
-    @number_buttons.each{|s| s.update(self) }
+    @number_buttons.values.each{|s| s.update(self) }
     Input.update #must at the end of this method
   end
   def draw
     @message.draw(10, 10, 0)
     @board.draw(self)
     @buttons.each{|s| s.draw(self) }
-    @number_buttons.each{|s| s.draw(self) }
+    @number_buttons.values.each{|s| s.draw(self) }
     @cursors[:normal].draw(mouse_x, mouse_y, 99999)
   end
 end

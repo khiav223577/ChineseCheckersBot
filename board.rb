@@ -6,6 +6,7 @@ class Board
   attr_reader :players
   SQRT3_DIVIDE_2 = Math.sqrt(3) / 2.0
   DIVIDE_2 = 1 / 2.0
+  AVAILABLE_PLAYER_NUMBERS = [1,2,3,4,6]
   ALL_BOARD_XY = [
     [0,0],
     [0,1],[1,0],
