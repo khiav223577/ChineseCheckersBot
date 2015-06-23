@@ -14,7 +14,7 @@ ARGV.each{|s|
 }
 class ChineseCheckersWindow < Gosu::Window
   def initialize
-    super(640, 480, true)
+    super(640, 480, false)
     @board = Board.new(320, 30, 30, 20)
 
     #----------choose the number of players----------
