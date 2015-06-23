@@ -139,7 +139,7 @@ class Board
     @players = Array.new(player_number){|idx|
       color_idx = colors[idx]
       areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color_idx }
-      ai = (idx == 0 ? AI_Manager.greedy_ai : AI_Manager.greedy_ai)
+      ai = (idx == 0 ? nil : AI_Manager.greedy_ai)
       next Player.new(self, color_idx, areas[idx][:goal], ai)
     }
     @color_player_mapping = Hash[*@players.map{|s| [s.color_idx, s]}.flatten]
