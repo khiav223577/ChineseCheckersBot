@@ -185,11 +185,16 @@ class Board
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
     @game.draw(window)
     if (remains = self.get_player_remains) != nil
+      sy, y_span = case @players.size
+                   when 4 ; [12, 24]
+                   when 6 ; [ 6, 18]
+                   else   ; [20, 24]
+                   end
       @players.each_with_index{|s, idx|
         remain = remains[s.color_idx]
         ratio = remain / 120.0
         x = 550
-        y = 12 + 24 * idx
+        y = sy + y_span * idx
         color = Stone::COLORS[s.color_idx][0]
         bar_width = 70
         offx = 0
