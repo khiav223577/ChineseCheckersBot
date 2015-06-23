@@ -10,7 +10,7 @@ class Board:
 	self.color_idx = 1
 	self.players = [1,2]
 	self.board_states = [0 for x in xrange(121)]
-	self.goals = [[111,112,113,114,115,116,117,118,119,120],[ 10, 23, 11, 35, 24, 12, 46, 36, 25, 13]]
+	self.goals = [[0,1,2,3,4,5,6,7,8,9,10],[ 10, 23, 11, 35, 24, 12, 46, 36, 25, 13]]
 	"""
 	self.parent = None
 	self.child = []
@@ -40,18 +40,23 @@ class Board:
 	for i in xrange(121):
 	    if i in [111,112,113,114,115,116,117,118,119,120]:
 		self.board_states[i] = 1
-	    elif i in [10,11,12,13,23,24,25,35,36,46]:
+	    elif i in [110, 97,109, 85, 96,108, 74, 84, 95,107]:
 		self.board_states[i] = 2
 	    else: 
 		self.board = 0
 	"""
-
     def expand(self):
 	for move in self.getLegalMove(self.color_idx,self.board_states):
 	    new_board = self.toNewBoard(self.board_states,move[0],move[-1])
-	    new_color = self.players[(self.players.index(self.color_idx)+1)%len(self.players)]
-	    self.child.append(Board(new_color,self.players,new_board,self.goals))
+	    cur_idx = self.players.index(self.color_idx)
+	    new_color = self.players[(cur_idx+1)%len(self.players)]
+	    #tmp = Board(new_color,self.players,copy.deepcopy(new_board),self.goals)
+	    self.tmp = self.__class__(None,None,None,None)
+	    #print "old",new_color,new_board
+	    #print "child",self.tmp.color_idx,self.tmp.board_states,'\n'
+	    self.child.append(copy.deepcopy(self.tmp))
 	for child in self.child:
+	    #print >> sys.stderr,(type(child))
 	    child.parent = self
 
     def UCB(self):
@@ -71,15 +76,19 @@ class Board:
 		if newstepXY not in self.ALL_BOARD_XY:
 		    continue
 		newstepX = self.XYtoX(newstepXY)
-		if board[newstepX] == 0 and self.approachGoal(checkerXY,newstepXY,deep_goalXY):
-			move = [checkerX, newstepX]
-			#new_board = self.toNewBoard(color,board,checkerX,newstepX)
-			all_step.append(move)
-	    
+		if board[newstepX] == 0:
+			new_board = self.toNewBoard(board,checkerX,newstepX)
+			if self.approachGoal(new_board,checkerXY,newstepXY,deep_goalXY):
+			    move = [checkerX, newstepX]
+			    all_step.append(move)
 	    #jump
 	    cur_move = [checkerX]
 	    all_boardhash = set([hash(str(board))])
 	    self.getJumpStep(all_step,color,cur_move,board,checkerX,all_boardhash,deep_goalXY)
+	#print all_step
+	    #print color,board
+	    #print >> sys.stderr,("no step",color,board)
+	#print >> sys.stderr,(all_step)
 	return all_step    
 
     def getJumpStep(self,all_step,color,cur_move,board,checkerX,all_boardhash,deep_goalXY):
@@ -98,12 +107,12 @@ class Board:
 		new_boardhash = hash(str(new_board))
 		if new_boardhash in all_boardhash:
 		    continue
-		if self.approachGoal(checkerXY,newstepXY,deep_goalXY):
+		if self.approachGoal(new_board,checkerXY,newstepXY,deep_goalXY):
 		    all_step.append(new_move)
 		all_boardhash.add(new_boardhash)
 		self.getJumpStep(all_step,color,new_move,new_board,newstepX,all_boardhash,deep_goalXY)
 
-    def approachGoal(self,start,dest,goal):
+    def approachGoal(self,board,start,dest,goal):
 	sdx = start[0] - goal[0]
 	sdy = start[1] - goal[1]
 	sd = max(abs(sdx),abs(sdy),abs(sdx+sdy))
@@ -112,10 +121,32 @@ class Board:
 	ddy = dest[1] - goal[1]
 	dd = max(abs(ddx),abs(ddy),abs(ddx+ddy))
 
-	return (dd <= sd) or dd <= 3
+	goalarea = None
+	goalX = self.XYtoX(goal)	
+	for g in self.goals:
+	    if goalX in g:
+		goalarea = g
+		break
+	if goalarea == None:
+		#print >> sys.stderr,("empty")
+		goalarea = [0]
+	fill = True
+	for pos in goalarea:
+	    if board[pos] == 0:
+	    	fill = False
+	if fill:
+	    return (dd <= sd) or (dd <= 3)
+	else:
+	    return (dd < sd) or (dd <= 3)
+	   
 	
+	
+    def toNewBoardModified(self,brd,cur,dest):
+	brd[dest] = brd[cur]
+	brd[cur] = 0
+
     def toNewBoard(self,board,cur,dest):
-	brd = copy.copy(board)
+	brd = copy.deepcopy(board)
 	brd[dest] = brd[cur]
 	brd[cur] = 0
 	return brd

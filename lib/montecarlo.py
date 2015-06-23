@@ -1,9 +1,25 @@
 #from brdfunc import BrdFunc
 #from brd import Brd
 from board import Board
-import random,json,sys,time
+import random,json,sys,time,copy
 
 class MonteCarlo:
+    def random(self,brd):
+	ans = random.choice(brd.getLegalMove(brd.color_idx,brd.board_states))
+	return ans
+    def expand(self,brd):
+	for move in brd.getLegalMove(brd.color_idx,brd.board_states):
+	    new_board = brd.toNewBoard(brd.board_states,move[0],move[-1])
+	    cur_idx = brd.players.index(brd.color_idx)
+	    new_color = brd.players[(cur_idx+1)%len(brd.players)]
+	    tmp = Board(new_color,brd.players,new_board,brd.goals)
+	    #print "old",new_color,new_board
+	    #print "child",tmp.color_idx,tmp.board_states,"\n"
+	    #print id(tmp),id(brd)
+	    brd.child.append(tmp)
+	for child in brd.child:
+	    child.parent = brd
+
     def determine(self,brd):
 	t0 = time.clock()
 	"""
@@ -21,12 +37,19 @@ class MonteCarlo:
 		    if UCB > maxx:
 			maxx = UCB
 			final_brd = b
-	    final_brd.expand()
-	    #print final_brd.child[0].parent.color_idx
-	    for b in final_brd.child:
-		for i in xrange(100):
-		    self.Simulate(b)
+	    self.expand(final_brd)
 	
+	    #print >> sys.stderr,(final_brd.color_idx,final_brd.players)
+	    #print >> sys.stderr,(final_brd.board_states)
+	    #print >> sys.stderr,(len(final_brd.child))
+	    #print >> sys.stderr,(final_brd.child[0].color_idx)
+	    #print >> sys.stderr,(final_brd.child[0].board_states)
+	    #break
+
+	    for b in final_brd.child:
+		for i in xrange(1):
+		    self.Simulate(b)
+	    break	
 	max_winrate = -float("inf")
 	for child,move in zip(brd.child,brd.getLegalMove(brd.color_idx,brd.board_states)):
 	    winrate = child.Wi/child.Ni
@@ -37,29 +60,43 @@ class MonteCarlo:
 	return ans
     
     def Simulate(self,brd):
+	constant_board = copy.deepcopy(brd.board_states)
 	cur_color = brd.color_idx
 	cur_board = brd.board_states
+	cur_idx = brd.players.index(cur_color)
+	player_len = len(brd.players)
+	deep = 0
 	while True:
+	    deep += 1 
+	    #print >> sys.stderr, deep
 	    all_move = brd.getLegalMove(cur_color,cur_board)
+
+	    if len(all_move) == 0:
+		print >> sys.stderr,(cur_color,cur_board)
 	    move = random.choice(all_move)
-	    cur_board = brd.toNewBoard(cur_board,move[0],move[-1])
+	    brd.toNewBoardModified(cur_board,move[0],move[-1])
 	    end = True
-	    for goal in brd.goals[brd.players.index(cur_color)]:
+
+
+	    #print cur_color,":",cur_board,brd.goals[cur_idx]	    
+
+
+	    for goal in brd.goals[cur_idx]:
 		if cur_board[goal] != cur_color:
 		    end = False
 		    break
-	    if end == True:
-		if brd.color_idx == cur_color:
-		    brd.Wi += 1
-		brd.Ni += 1
+	    if end:
 		b = brd
-		while b.parent != None:
-		    b.parent.Ni += 1
+		while b != None:
+		    b.Ni += 1
+		    if brd.color_idx == cur_color:
+		    	brd.Wi += 1
 		    b = b.parent
 		break
-	    cur_color = brd.players[(brd.players.index(cur_color)+1)%len(brd.players)]
+	    cur_idx = (cur_idx + 1)%player_len
+	    cur_color = brd.players[cur_idx]
     
-
+	brd.board_states = constant_board
 	
 
 if __name__ == '__main__':
