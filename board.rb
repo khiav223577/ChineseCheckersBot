@@ -139,9 +139,10 @@ class Board
     @players = Array.new(player_number){|idx|
       color_idx = colors[idx]
       areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color_idx }
-      ai = (idx == 0 ? AI_Manager.greedy_min_max_ai : AI_Manager.greedy_ai)
+      ai = (idx == 0 ? AI_Manager.greedy_ai : AI_Manager.greedy_ai)
       next Player.new(self, color_idx, areas[idx][:goal], ai)
     }
+    @color_player_mapping = Hash[*@players.map{|s| [s.color_idx, s]}.flatten]
     @game = Game.new(@players)
   end
 #------------------------------------------
@@ -160,7 +161,6 @@ class Board
     return Stone::COLORS[@game.current_player.color_idx]
   end
   def get_player_remains
-    @color_player_mapping ||= Hash[*players.map{|s| [s.color_idx, s]}.flatten]
     hash = {}
     get_board_state_for_ai.each_with_index{|s, bidx|
       next if s == 0
