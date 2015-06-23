@@ -45,7 +45,10 @@ class Player
         deselect_stone
         return finish!
       when 2 #jump
-        middle_stone = @board.get_stone_by_board_xy((stone.bx + @prev_select_stone.bx) / 2, (stone.by + @prev_select_stone.by) / 2)
+        bx = (stone.bx + @prev_select_stone.bx)
+        by = (stone.by + @prev_select_stone.by)
+        return :illegal_movement if bx % 2 != 0 or by % 2 != 0
+        middle_stone = @board.get_stone_by_board_xy(bx / 2, by / 2)
         return :cant_jump_without_other_stone if not middle_stone.occupied?
         stone.switch_color_with(@prev_select_stone)
         @move_count += 1

@@ -6,6 +6,7 @@ class Board
   attr_reader :players
   SQRT3_DIVIDE_2 = Math.sqrt(3) / 2.0
   DIVIDE_2 = 1 / 2.0
+  AVAILABLE_PLAYER_NUMBERS = [1,2,3,4,6]
   ALL_BOARD_XY = [
     [0,0],
     [0,1],[1,0],
@@ -131,7 +132,7 @@ class Board
       }
     }
   end
-  def start_game(player_number, choose_color_idx)
+  def start_game(mode, player_number, choose_color_idx)
     mapping = Hash[*ALL_PLAYER_START_AREA.flatten.each_with_index.to_a.flatten] #set all start area to gray color
     @stones = ALL_BOARD_XY.map.with_index{|(bx, by), bidx| Stone.new(bx, by, *board_xy_to_real_xy(bx, by), @draw_attrs[:stone_size], (mapping[bidx] ? 0 : nil)) }
     colors = get_players_color(player_number, choose_color_idx)
@@ -139,9 +140,14 @@ class Board
     @players = Array.new(player_number){|idx|
       color_idx = colors[idx]
       areas[idx][:start].each{|bidx| @stones[bidx].color_idx = color_idx }
-      ai = (idx == 0 ? AI_Manager.greedy_min_max_ai : AI_Manager.greedy_ai)
+      ai = case mode
+           when :PvP ; nil
+           when :CvP ; (idx == 0 ? nil : AI_Manager.greedy_ai)
+           when :CvC ; AI_Manager.greedy_ai
+           end
       next Player.new(self, color_idx, areas[idx][:goal], ai)
     }
+    @color_player_mapping = Hash[*@players.map{|s| [s.color_idx, s]}.flatten]
     @game = Game.new(@players)
   end
 #------------------------------------------
@@ -160,7 +166,6 @@ class Board
     return Stone::COLORS[@game.current_player.color_idx]
   end
   def get_player_remains
-    @color_player_mapping ||= Hash[*players.map{|s| [s.color_idx, s]}.flatten]
     hash = {}
     get_board_state_for_ai.each_with_index{|s, bidx|
       next if s == 0
@@ -185,11 +190,16 @@ class Board
     @stones.each{|s| s.draw(window, @draw_attrs[:x], @draw_attrs[:y]) }
     @game.draw(window)
     if (remains = self.get_player_remains) != nil
+      sy, y_span = case @players.size
+                   when 4 ; [12, 24]
+                   when 6 ; [ 6, 18]
+                   else   ; [20, 24]
+                   end
       @players.each_with_index{|s, idx|
         remain = remains[s.color_idx]
         ratio = remain / 120.0
         x = 550
-        y = 12 + 24 * idx
+        y = sy + y_span * idx
         color = Stone::COLORS[s.color_idx][0]
         bar_width = 70
         offx = 0
@@ -218,6 +228,7 @@ class Board
 #===================================
 #  Game
 #===================================
+  attr_reader :game
   class Game
     attr_reader :stones
     def initialize(players)
@@ -233,6 +244,7 @@ class Board
 #------------------------------------------
 #  render
 #------------------------------------------
+    attr_reader :current_status
     def update(window)
       return if @current_status != nil
       case self.current_player.update(window)
