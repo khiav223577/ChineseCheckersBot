@@ -1,5 +1,4 @@
-# Introduction to AI Final Project
-# Chinese Checkers Bot
+# AI Final Project - Chinese Checkers Bot
 
 In our project, we want to provide a Chinese checkers game which can be played by two, three, four, or six players, and try to implement an AI which has different difficulties and can play with each other or with real players. Our goal is try to make the AI have good strategy in this game and can make good decision in each turn under time pressure. Moreover, we also want to improve the performance of our AI to have the ability to beat a good real player.
 
