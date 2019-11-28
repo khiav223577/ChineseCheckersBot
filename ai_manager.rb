@@ -1,5 +1,5 @@
 require 'json'
-require File.expand_path('../lib/core', __FILE__)
+#require File.expand_path('../lib/core', __FILE__)
 require File.expand_path('../lib/ruby/greedy_ai', __FILE__)
 require File.expand_path('../lib/ruby/alpha_beta_ai', __FILE__)
 require File.expand_path('../lib/ruby/greedy_min_max_ai', __FILE__)
